@@ -1,0 +1,25 @@
+<BigTouchSwitch>:
+    size_hint: None, None
+    size: switch.size[0], switch.size[1]
+    MDSwitch:
+        id: switch
+
+        size: self.parent.switch_width, self.parent.switch_height
+        #height:self.parent.switch_height
+        #width:self.parent.switch_width
+        pos_hint: {"center_x": 0.5, "center_y": 0.5}
+        active: self.parent.active
+        on_active: self.parent.on_active
+        icon_active: self.parent.icon_active
+        icon_inactive: self.parent.icon_inactive
+
+
+<ThemeSwitch>:
+    pos_hint: {"center_x": 0.5, "center_y": 0.5}
+    icon_active: "moon-waxing-crescent"
+    icon_inactive:"white-balance-sunny"
+
+
+<ParallelSwitch>:
+    icon_active: "source-branch"
+    icon_inactive:"arrow-collapse-up"

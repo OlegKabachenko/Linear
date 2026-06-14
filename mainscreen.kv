@@ -5,6 +5,15 @@
 		StandartSelectSection:
 		    id: selection_box
 		    size_hint: 1, 0.3
+		    SelectorBox:
+		        id:example_selector
+		        size_hint_x: None
+                width: selection_box.width
+		    SelectorBox:
+		        id:method_selector
+		        size_hint_x: None
+                width: selection_box.width
+            ThemeSwitch
 
 		StandartBox:
 			size_hint: 1, 0.4

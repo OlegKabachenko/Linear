@@ -1,1 +1,30 @@
 CARD_L_COLOR: [0.867, 0.98, 1]
+
+EXAMPLES:
+  Приклад 1:
+    n: 2
+    x: [5, -3, 2, 3]
+    y: [17, 11]
+    scale: 10
+    max_itr: 20
+
+  Приклад 2:
+    n: 2
+    x: [5, -3, 2, 3]
+    y: [17, 11]
+    scale: 10
+    max_itr: 20
+
+  Приклад 3:
+    n: 2
+    x: [5, -3, 2, 3]
+    y: [17, 11]
+    scale: 10
+    max_itr: 20
+
+  Введення власної системи:
+    n: null
+    x: null
+    y: null
+    scale: null
+    max_itr: null

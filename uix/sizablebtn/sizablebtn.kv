@@ -1,0 +1,36 @@
+<SizableFabBtn>:
+	size_hint: 0.15, 1
+	pos_hint: {"center_x": 0.5, "center_y": 0.5}
+	color_map: "tertiary"
+	theme_font_size: "Custom"
+
+
+<ExitBtn>:
+    on_press: root.exit()
+    theme_bg_color: "Custom"
+    md_bg_color: (0.78, 0.13, 0.13, 1)
+    size_hint_y: 0.6
+    icon: "exit-to-app"
+
+
+<SizableFabTextBtn>:
+    id: button_root
+    color_map: "secondary"
+	pos_hint: {"center_x": 0.5, "center_y": 0.5}
+	fab_state: "expand"
+
+	MDExtendedFabButtonText:
+        id: text
+
+        theme_font_size: "Custom"
+        halign: "center"
+        valign: "middle"
+
+        theme_text_color: root.theme_text_color
+        text_color: root.text_color
+
+        size_hint: None, None
+        width: button_root.width
+        height: button_root.height
+        text_size: self.width, self.height
+

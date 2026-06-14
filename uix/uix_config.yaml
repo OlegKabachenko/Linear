@@ -1,0 +1,42 @@
+APP_WIDE_SCR_MULT: 1.2  # the app window is considered wide when wide*app_wide_scr_mult > height
+
+
+ERROR_MSG_BG_COLOR: [1, 0.85, 0.84]
+
+
+ROUND_PRECISION: 7
+AREA_ROUND_PRECISION: 2
+EXEC_TIME_PRECISION: 5
+
+
+# ------for sizable buttons
+BTN_ROOT_WIDTH_MLT: 0.8
+
+
+# ------for text in controlbox
+CTRL_BOX_FONT_MLT_WIDE: 1.2
+
+
+# ------for drop menu
+DROP_MENU_WIDTH_DIV: 1.5
+DROP_MENU_MAX_WIDTH: 700
+DROP_MENU_FONT_MLT_WIDE: 0.17
+MAX_DROP_MENU_FONT: 20
+
+
+# ------default values for font size config
+FONT_MLT_WIDE: 1.5
+FONT_MLT_NARROW: 2
+HEIGHT_FONT_MLT: 0.8
+MIN_FONT: 15
+MAX_FONT: 40
+
+
+#------for text id dialox boxes
+DIALOG_MIN_FONT: 20
+DIALOG_FONT_MLT_WIDE: 2
+DIALOG_FONT_MLT_NARROW: 3
+
+
+
+
