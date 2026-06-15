@@ -32,11 +32,18 @@ MIN_FONT: 15
 MAX_FONT: 40
 
 
+#------for text in parameters labels
+PRM_LBL_MAX_FONT: 25
+
+
 #------for text id dialox boxes
 DIALOG_MIN_FONT: 20
 DIALOG_FONT_MLT_WIDE: 2
 DIALOG_FONT_MLT_NARROW: 3
 
 
+#------for integral parameters widget
+P_SECTION_HEIGHT: 85
+P_HEIGHT_FONT_MLT: 0.5
 
 

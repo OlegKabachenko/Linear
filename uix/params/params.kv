@@ -1,0 +1,37 @@
+<BaseParamLayout>:
+	size_hint_y: None
+	on_size: self.orientation_check()
+	padding: ["30dp",0,"30dp",0]
+
+
+<ParamLabel>:
+	theme_font_size : "Custom"
+	halign: "center"
+	valign: "middle"
+	padding: [0,0,0,0]
+
+
+<TextSlider>:
+    MDBoxLayout:
+        orientation: "vertical"
+        ParamLabel:
+            id: title
+            text: root.title
+
+        MDSlider:
+            id: slider
+            min: root.min
+            max: root.max
+            step_point_size: 0
+            value: root.value
+            size_hint_x: 0.8
+            pos_hint: {"center_x": 0.5}
+            MDSliderHandle:
+            MDSliderValueLabel:
+
+
+
+
+
+
+

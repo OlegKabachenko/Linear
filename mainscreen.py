@@ -28,7 +28,6 @@ class MainScreen(MDScreen):
         self._init_examples()
         self._init_selectors()
 
-
     def _init_methods(self):
         solver = Solver()
         self.METHODS = solver.METHODS
