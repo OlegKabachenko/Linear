@@ -71,11 +71,11 @@ class MainScreen(MDScreen):
         if n is None:
             return
 
-        self._validate_field("n", n, expected_type=int, min_val=1, max_val=30)
+        self._validate_field("n", n, expected_type=int, min_val=config["MIN_N"], max_val=config["MAX_N"])
         self._validate_field("x", x, expected_type=list, length=n * n)
         self._validate_field("y", y, expected_type=list, length=n)
-        self._validate_field("scale", scale, expected_type=int, min_val=1, max_val=110)
-        self._validate_field("max_itr", max_itr, expected_type=int, min_val=1, max_val=300)
+        self._validate_field("scale", scale, expected_type=int, min_val=config["MIN_SCALE"], max_val=config["MAX_SCALE"])
+        self._validate_field("max_itr", max_itr, expected_type=int, min_val=config["MIN_MAX_ITR"], max_val=config["MAX_MAX_ITR"])
 
     def _validate_field(self, name, value, *, expected_type=None, min_val=None, max_val=None, length=None):
 
@@ -83,10 +83,10 @@ class MainScreen(MDScreen):
             raise ValueError(f"Invalid type for {name}")
 
         if isinstance(value, (int, float)):
-            if min_val is not None and value <= min_val:
-                raise ValueError(f"{name} must be > {min_val}")
-            if max_val is not None and value >= max_val:
-                raise ValueError(f"{name} must be < {max_val}")
+            if min_val is not None and value < min_val:
+                raise ValueError(f"{name} must be => {min_val}")
+            if max_val is not None and value > max_val:
+                raise ValueError(f"{name} must be <= {max_val}")
 
         if length is not None:
             if len(value) != length:

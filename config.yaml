@@ -1,5 +1,6 @@
 CARD_L_COLOR: [0.867, 0.98, 1]
 
+
 EXAMPLES:
   Приклад 1:
     n: 2
@@ -28,3 +29,12 @@ EXAMPLES:
     y: null
     scale: null
     max_itr: null
+
+
+#------for system limitations
+MIN_N: 2
+MAX_N: 30
+MIN_SCALE: 2
+MAX_SCALE: 110
+MIN_MAX_ITR: 2
+MAX_MAX_ITR: 500
