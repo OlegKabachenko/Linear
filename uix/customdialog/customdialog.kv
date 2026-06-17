@@ -1,0 +1,41 @@
+<DialogText>:
+    theme_font_size: "Custom"
+    theme_font_color: "Custom"
+
+
+<BaseDialog>:
+    id: dialog
+    size_hint_min_x: "200dp"
+
+    md_bg_color: root.bg_color
+    shadow_color: root.bg_color
+    focus_behavior: True
+
+    DialogText:
+        leading_icon: "check"
+        halign: "center"
+        text: root.head_text
+        text_color: root.text_color
+        theme_text_color: "Custom"
+
+
+    MDDialogButtonContainer:
+        Widget
+        SizableFabTextBtn:
+            size_hint_x: 0.8
+
+            theme_bg_color: "Custom"
+            md_bg_color: root.calculate_btn_color(dialog)
+
+            theme_text_color: "Custom"
+            text_color: root.text_color
+
+
+            button_text: root.button_text
+            on_release: root.dismiss()
+        Widget
+
+
+
+
+

@@ -6,6 +6,7 @@ from kivymd.app import MDApp
 class BaseApp(MDApp):
     def __init__(self, screen_class, custom_sfce_cnt_hg_clr, **kwargs):
         super().__init__(**kwargs)
+        self.app_config = None
         self.MULTI_SCREEN = False
         self.main_screen = None
         self._screen_class = screen_class
@@ -37,5 +38,5 @@ class BaseApp(MDApp):
         self.theme_cls.theme_style = "Light"
         self.theme_cls.primary_palette = "Azure"
         self.theme_cls.surfaceContainerHighestColor = self.custom_surfaceContainerHighestColor
-        self.main_screen = self._screen_class()
+        self.main_screen = self._screen_class(self.app_config)
         return self.main_screen

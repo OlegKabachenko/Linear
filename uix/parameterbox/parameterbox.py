@@ -1,0 +1,20 @@
+__all__ = "ParameterBox"
+
+import os
+import sys
+from pathlib import Path
+from kivy.lang import Builder
+
+from kivymd.uix.boxlayout import MDBoxLayout
+
+base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
+kv_path = os.path.join(base_path, "uix", "parameterbox", "parameterbox.kv")
+
+with open(
+        kv_path, encoding="utf-8"
+) as kv_file:
+    Builder.load_string(kv_file.read())
+
+
+class ParameterBox(MDBoxLayout):
+    pass

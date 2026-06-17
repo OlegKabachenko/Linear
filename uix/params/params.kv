@@ -1,0 +1,50 @@
+<ParameterText>:
+	mode: "filled"
+	required: self.is_required
+	pos_hint: {"center_x": 0.5, "center_y": 0.5}
+
+	MDTextFieldHelperText:
+		theme_font_size: "Custom"
+		font_size: "15sp"
+		text: "Некоректні дані"
+		mode: "persistent"	#!!!on_error mode changes the text color to black, when user changes app theme from Dark to Light, KiviMD problem
+		text_color_focus: [0, 0, 0, 0]
+		text_color_normal:[0, 0, 0, 0]
+
+
+<IntParameterText>:
+    input_filter: 'int'
+
+
+<BaseParamLayout>:
+	size_hint_y: None
+	on_size: self.orientation_check()
+	padding: ["30dp",0,"30dp",0]
+
+
+<StandartParam>:
+    id: param_root
+	StrictParameterText:
+		id: input
+		on_text: if self.text == "0": self.text = ""
+		forbid_negative: param_root.forbid_negative_param
+		input_filter: param_root.input_type
+		MDTextFieldHintText:
+			text: param_root.hint
+
+
+<ClassicMethodsParam>:
+    padding: 0
+
+    MDBoxLayout:
+        IntParam:
+            id: scale
+            forbid_negative_param: True
+            hint: "Множник матриць"
+
+    MDBoxLayout:
+        IntParam:
+            id: limit
+            forbid_negative_param: True
+            hint: "Ліміт ітерацій"
+

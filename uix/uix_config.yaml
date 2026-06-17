@@ -1,6 +1,11 @@
 APP_WIDE_SCR_MULT: 1.2  # the app window is considered wide when wide*app_wide_scr_mult > height
 
 
+#------for parameters widgets
+P_SECTION_HEIGHT: 85
+P_HEIGHT_FONT_MLT: 0.5
+
+
 ERROR_MSG_BG_COLOR: [1, 0.85, 0.84]
 
 

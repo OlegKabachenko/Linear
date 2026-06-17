@@ -6,29 +6,21 @@ EXAMPLES:
     n: 2
     x: [5, -3, 2, 3]
     y: [17, 11]
-    scale: 10
-    max_itr: 20
 
   Приклад 2:
     n: 2
     x: [5, -3, 2, 3]
     y: [17, 11]
-    scale: 10
-    max_itr: 20
 
   Приклад 3:
     n: 2
     x: [5, -3, 2, 3]
     y: [17, 11]
-    scale: 10
-    max_itr: 20
 
   Введення власної системи:
     n: null
     x: null
     y: null
-    scale: null
-    max_itr: null
 
 
 #------for system limitations
@@ -38,3 +30,9 @@ MIN_SCALE: 2
 MAX_SCALE: 110
 MIN_MAX_ITR: 2
 MAX_MAX_ITR: 500
+
+DEFAULT_EXAMPLE_ID: 0
+DEFAULT_METHOD_ID: 0
+
+
+ANIMATION_DURATION: 0.3
