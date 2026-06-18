@@ -211,11 +211,18 @@ class SizeParamExtra(BaseParamLayout):
             self.ids.buttons_box.size_hint = (0.3, 1)
             self.set_bottom_padding(0)
 
+            for btn in self.ids.buttons_box.children:
+                btn.size_hint = (1, 0.7)
+
+
         else:
             self.spacing = "0dp"
             self.ids.size_box.size_hint = (1, 1)
             self.ids.buttons_box.size_hint = (1, 1)
             self.set_bottom_padding("20dp")
+
+            for btn in self.ids.buttons_box.children:
+                btn.size_hint = (1, 0.75)
 
     def set_bottom_padding(self, value):
         p = self.padding

@@ -22,6 +22,7 @@ from uix.restrictedscrollview import RestrictedScrollView
 from uix.systemdatabox import SystemDataBox
 from uix.customdialog import ErrorDialog
 from uix.params import ClassicMethodsParam, DotsCntParam
+from uix.sizablebtn import ExitBtn
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
