@@ -6,6 +6,7 @@ from pathlib import Path
 from kivy.lang import Builder
 
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivy.properties import NumericProperty
 
 from tools.animation import Animator
 
@@ -23,6 +24,8 @@ with open(
 
 class SystemDataBox(MDBoxLayout):
     animator = Animator()
+    min_size = NumericProperty(None)
+    max_size = NumericProperty(None)
 
     def get_integral_params(self):
         extra_params_box = self.ids.extra_params_box

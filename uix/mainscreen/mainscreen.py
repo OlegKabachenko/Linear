@@ -35,6 +35,8 @@ with open(config_path, 'r', encoding="utf-8") as file, \
 
 class MainScreen(MDScreen):
     current_method_id = NumericProperty(None)
+    min_n = NumericProperty(None)
+    max_n = NumericProperty(None)
 
     def __init__(self, app_config, **kwargs):
         super().__init__(**kwargs)
@@ -53,6 +55,13 @@ class MainScreen(MDScreen):
         self.ANIMATION_DURATION = self.app_config['ANIMATION_DURATION']
         self.DEFAULT_EXAMPLE_ID = self.app_config['DEFAULT_EXAMPLE_ID']
         self.DEFAULT_METHOD_ID = self.app_config['DEFAULT_METHOD_ID']
+
+        self.min_n = self.app_config["MIN_N"]
+        self.max_n = self.app_config["MAX_N"]
+        self.min_scale = self.app_config["MIN_SCALE"]
+        self.max_scale = self.app_config["MAX_SCALE"]
+        self.min_max_itr = self.app_config["MIN_MAX_ITR"]
+        self.max_max_itr = self.app_config["MAX_MAX_ITR"]
 
     def _init_constants(self):
         self.ROUND_PRECISION = config['ROUND_PRECISION']
@@ -84,7 +93,12 @@ class MainScreen(MDScreen):
 
     def _init_widgets(self):
         self.error_dialog = ErrorDialog()
-        self.classic_methods_param = ClassicMethodsParam()
+        self.classic_methods_param = ClassicMethodsParam(
+            min_scale=self.min_scale,
+            max_scale=self.max_scale,
+            min_itr=self.min_max_itr,
+            max_itr=self.max_max_itr ,
+        )
         self.monte_param = DotsCntParam()
 
         self.extra_widgets = []
@@ -112,9 +126,9 @@ class MainScreen(MDScreen):
             n = value.get("n", None)
 
             if n is not None:
-                if not (self.app_config["MIN_N"] <= n <= self.app_config["MAX_N"]):
+                if not (self.min_n <= n <= self.max_n):
                     raise ValueError(
-                        f"N must be in range {self.app_config['MIN_N']} - {self.app_config['MAX_N']}, got {n}"
+                        f"N must be in range {self.min_n} - {self.max_n}, got {n}"
                     )
 
     def set_extra_widgets(self):

@@ -1,6 +1,7 @@
 <ParameterText>:
 	mode: "filled"
 	required: self.is_required
+
 	pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
 	MDTextFieldHelperText:
@@ -24,9 +25,10 @@
 
 <StandartParam>:
     id: param_root
-	StrictParameterText:
+	ParameterText:
 		id: input
-		on_text: if self.text == "0": self.text = ""
+		min_value: root.min_value
+		max_value: root.max_value
 		forbid_negative: param_root.forbid_negative_param
 		input_filter: param_root.input_type
 		MDTextFieldHintText:
@@ -41,10 +43,14 @@
             id: scale
             forbid_negative_param: True
             hint: "Множник матриць"
+            min_value: root.min_scale
+            max_value: root.max_scale
 
     MDBoxLayout:
         IntParam:
             id: limit
             forbid_negative_param: True
             hint: "Ліміт ітерацій"
+            min_value: root.min_itr
+            max_value: root.max_itr
 

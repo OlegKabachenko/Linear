@@ -1,4 +1,5 @@
 <MainScreen>:
+    id: main_screen
 	md_bg_color: self.theme_cls.backgroundColor
 
 	StandartRootBox:
@@ -25,6 +26,8 @@
 				do_scroll_y: True
 				SystemDataBox:
 				    id: systemdatabox
+				    min_size: main_screen.min_n
+				    max_size: main_screen.max_n
 
 
 		StandartBox:

@@ -7,7 +7,7 @@ from pathlib import Path
 from kivy.lang import Builder
 
 from kivy.core.window import Window
-
+from kivy.clock import Clock
 from kivy.properties import NumericProperty, StringProperty, BooleanProperty
 
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -35,6 +35,10 @@ with open(config_path, 'r') as file, \
 
 class ParameterText(MDTextField, SizableFontMixin):
     is_required = True
+    forbid_negative = BooleanProperty(False)
+    min_value = NumericProperty(None)
+    max_value = NumericProperty(None)
+    _internal_update = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -47,18 +51,34 @@ class ParameterText(MDTextField, SizableFontMixin):
             self.text, self, root_width_mlt=config['BTN_ROOT_WIDTH_MLT'], height_based_font=True,
             height_font_mlt=config['P_HEIGHT_FONT_MLT'])))
 
-    def set_error(self, item, is_error=True):
-        item.error = is_error
-        return
+    def on_text(self, instance, value):
+        if self._internal_update is True:
+            return
 
+        try:
+            num = float(value)
+        except ValueError:
+            return
 
-class StrictParameterText(ParameterText):
-    forbid_negative = BooleanProperty(False)
+        if self.min_value is not None and num < self.min_value:
+            Clock.schedule_once(lambda dt: self.set_error(self), 0)
+
+        if self.max_value is not None and num > self.max_value:
+            Clock.schedule_once(lambda dt: self.set_error(self), 0)
+
+        if value == "0":
+            self._internal_update = True
+            Clock.schedule_once(lambda dt: setattr(instance, "text", ""), 0)
+            Clock.schedule_once(lambda dt: setattr(self, "_internal_update", False), 0)
 
     def insert_text(self, substring, from_undo=False):
         if self.forbid_negative:
             substring = substring.replace("-", "")
         return super().insert_text(substring, from_undo)
+
+    def set_error(self, item, is_error=True):
+        item.error = is_error
+        return
 
 
 class BaseParamLayout(MDBoxLayout):  #Base layout for function parameters
@@ -127,6 +147,8 @@ class BaseParamLayout(MDBoxLayout):  #Base layout for function parameters
 
 class StandartParam(BaseParamLayout):
     input_type = StringProperty()
+    min_value = NumericProperty(None)
+    max_value = NumericProperty(None)
 
     def set_params(self, value):
         self.ids.input.text = "" if value is None else str(value)
@@ -147,6 +169,11 @@ class FloatParam(StandartParam):
 
 
 class ClassicMethodsParam(BaseParamLayout):
+    min_scale = NumericProperty(None)
+    max_scale = NumericProperty(None)
+    min_itr = NumericProperty(None)
+    max_itr = NumericProperty(None)
+
     def set_params(self, scale, limit):
         self.ids.scale.text = scale
         self.ids.limit.text = limit
