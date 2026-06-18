@@ -22,6 +22,7 @@ with open(
 
 class BigTouchSwitch(MDBoxLayout):
     active = BooleanProperty(False)
+    disabled = BooleanProperty(False)
     switch_height = NumericProperty(34)
     switch_width = NumericProperty(80)
     icon_active = StringProperty("check")
@@ -29,10 +30,11 @@ class BigTouchSwitch(MDBoxLayout):
     on_active = ObjectProperty(lambda instance, value: None)
 
     def on_touch_down(self, touch):
-        if self.collide_point(*touch.pos):
-            self.active = not self.active
-            return True
-        return super().on_touch_down(touch)
+        if not self.disabled:
+            if self.collide_point(*touch.pos):
+                self.active = not self.active
+                return True
+            return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
         if self.collide_point(*touch.pos):

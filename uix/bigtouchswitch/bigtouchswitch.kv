@@ -3,10 +3,9 @@
     size: switch.size[0], switch.size[1]
     MDSwitch:
         id: switch
-
+        active: self.parent.active
+        disabled: self.parent.disabled
         size: self.parent.switch_width, self.parent.switch_height
-        #height:self.parent.switch_height
-        #width:self.parent.switch_width
         pos_hint: {"center_x": 0.5, "center_y": 0.5}
         active: self.parent.active
         on_active: self.parent.on_active

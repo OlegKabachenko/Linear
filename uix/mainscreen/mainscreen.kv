@@ -14,11 +14,18 @@
 		        id:method_selector
 		        size_hint_x: None
                 width: selection_box.width
-            ThemeSwitch
+            MDBoxLayout:
+                pos_hint: {"center_x": 0.5, "center_y": 0.5}
+                size_hint: None, None
+                adaptive_width: True
+                adaptive_height: True
+                spacing: "10dp"
+                ThemeSwitch
+                ParallelSwitch:
+                    id: parallel_switch
 
 		StandartBox:
 			size_hint: 1, 0.4
-
 
 			RestrictedScrollView:
 			    clip_behavior: 'clip_children'

@@ -10,12 +10,13 @@ from kivy.lang import Builder
 from kivymd.uix.screen import MDScreen
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
+from kivymd.uix.boxlayout import MDBoxLayout
 
 from tools.solver import Solver
 from tools.system import System
 
 from uix.controlbox import SelectorBox
-from uix.bigtouchswitch import ThemeSwitch
+from uix.bigtouchswitch import ThemeSwitch, ParallelSwitch
 from uix.standartboxlayout import StandartRootBox
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.systemdatabox import SystemDataBox
@@ -97,7 +98,7 @@ class MainScreen(MDScreen):
             min_scale=self.min_scale,
             max_scale=self.max_scale,
             min_itr=self.min_max_itr,
-            max_itr=self.max_max_itr ,
+            max_itr=self.max_max_itr,
         )
         self.monte_param = DotsCntParam()
 
@@ -149,10 +150,20 @@ class MainScreen(MDScreen):
     def handle_method_select(self, s_id, prev_id):
         if s_id != prev_id:
             self.manage_extra_method_params(s_id)
+            self.manage_parallel_switch(s_id)
             self.current_method_id = s_id
 
     def manage_extra_method_params(self, i):
         self.ids.systemdatabox.add_extra_params(self.extra_widgets[i], self.ANIMATION_DURATION)
+
+    def manage_parallel_switch(self, i):
+        parallel_swicth = self.ids.parallel_switch
+
+        if self.METHODS[self.METHOD_KEYS[i]]["can_be_parallel"] is True:
+            parallel_swicth.disabled = False
+        else:
+            parallel_swicth.active = False
+            parallel_swicth.disabled = True
 
     def set_input_values(self, i):
         n = ""
