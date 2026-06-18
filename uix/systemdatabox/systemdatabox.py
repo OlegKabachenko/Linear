@@ -11,7 +11,7 @@ from kivy.properties import NumericProperty
 from tools.animation import Animator
 
 from uix.parameterbox import ParameterBox
-from uix.params import SizeParam
+from uix.params import SizeParamExtra
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 kv_path = os.path.join(base_path, "uix", "systemdatabox", "systemdatabox.kv")

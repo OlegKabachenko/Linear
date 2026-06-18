@@ -54,3 +54,30 @@
             min_value: root.min_itr
             max_value: root.max_itr
 
+<SizeParamExtra>:
+    MDBoxLayout:
+        id: size_box
+        spacing:0
+        padding:0
+        SizeParam:
+            id: size_param
+            padding: 0
+            min_value: root.min_value
+            max_value: root.max_value
+
+    MDBoxLayout:
+
+        id:buttons_box
+        spacing: "6dp"
+        SizableFabBtn:
+            id: plus_button
+            size_hint: [1, 0.75]
+            icon: "plus"
+            on_release: root.increment()
+
+        SizableFabBtn:
+            id: minus_button
+            size_hint: [1, 0.75]
+            icon: "minus"
+            on_release: root.decrement()
+

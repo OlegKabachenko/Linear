@@ -1,4 +1,4 @@
-__all__ = ("BaseParamLayout", "DotsCntParam", "IntParam", "FloatParam", "SizeParam", "ClassicMethodsParam")
+__all__ = ("BaseParamLayout", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra")
 
 import yaml
 import os
@@ -20,6 +20,7 @@ from sympy import Symbol, sympify, SympifyError
 from re import findall, match
 
 from uix.mixins import SizableFontMixin
+from uix.sizablebtn import SizableFabBtn
 
 from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
@@ -87,6 +88,8 @@ class BaseParamLayout(MDBoxLayout):  #Base layout for function parameters
     first_call = BooleanProperty(True)
     hint = StringProperty()
     forbid_negative_param = BooleanProperty(False)
+
+    _pending_update = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -194,3 +197,53 @@ class SizeParam(IntParam):
 class DotsCntParam(IntParam):
     forbid_negative_param = True
     hint = "Кількість точок"
+
+
+class SizeParamExtra(BaseParamLayout):
+    min_value = NumericProperty(None)
+    max_value = NumericProperty(None)
+
+    def orientation_check(self):
+        super().orientation_check()
+        if self.orientation == "horizontal":
+            self.spacing = "10dp"
+            self.ids.size_box.size_hint = (0.7, 1)
+            self.ids.buttons_box.size_hint = (0.3, 1)
+            self.set_bottom_padding(0)
+
+        else:
+            self.spacing = "0dp"
+            self.ids.size_box.size_hint = (1, 1)
+            self.ids.buttons_box.size_hint = (1, 1)
+            self.set_bottom_padding("20dp")
+
+    def set_bottom_padding(self, value):
+        p = self.padding
+        self.padding = (p[0], p[1], p[2], value)
+
+    def set_params(self, n):
+        self.ids.size_param.set_params(n)
+
+    def increment(self):
+        self._change_value(1)
+
+    def decrement(self):
+        self._change_value(-1)
+
+    def _change_value(self, delta):
+        widget = self.ids.size_param
+
+        try:
+            value = float(widget.ids.input.text or 0)
+        except ValueError:
+            raise ValueError(f"Exception during value change in sizeparam:'{text}'")
+
+        new_value = value + delta
+
+        if self.min_value is not None:
+            new_value = max(self.min_value, new_value)
+
+        if self.max_value is not None:
+            new_value = min(self.max_value, new_value)
+
+        widget.ids.input.text = str(int(new_value))
