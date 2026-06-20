@@ -1,4 +1,4 @@
-__all__ = ("BaseParamLayout", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra")
+__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra", "SystemFloatParam")
 
 import yaml
 import os
@@ -9,6 +9,7 @@ from kivy.lang import Builder
 from kivy.core.window import Window
 from kivy.clock import Clock
 from kivy.properties import NumericProperty, StringProperty, BooleanProperty
+from kivy.metrics import dp
 
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
@@ -39,6 +40,7 @@ class ParameterText(MDTextField, SizableFontMixin):
     forbid_negative = BooleanProperty(False)
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
+    can_be_zero = BooleanProperty(False)
     _internal_update = BooleanProperty(False)
 
     def __init__(self, **kwargs):
@@ -67,7 +69,7 @@ class ParameterText(MDTextField, SizableFontMixin):
         if self.max_value is not None and num > self.max_value:
             Clock.schedule_once(lambda dt: self.set_error(self), 0)
 
-        if value == "0":
+        if not self.can_be_zero and value == "0":
             self._internal_update = True
             Clock.schedule_once(lambda dt: setattr(instance, "text", ""), 0)
             Clock.schedule_once(lambda dt: setattr(self, "_internal_update", False), 0)
@@ -169,6 +171,20 @@ class FloatParam(StandartParam):
 
     def get_params(self, **kwargs):
         return float(self.get_param_text(self.ids.input))
+
+
+class SystemFloatParam(FloatParam):
+    def on_kv_post(self, base_widget):
+        field = self.ids.input
+
+        field.can_be_zero = True
+        field.ids.hint_text.text = ""
+
+        self.size_hint_x = None
+        self.width = dp(config['INPUT_FIELD_WIDTH'])
+        field.width = self.width
+
+        field.height = dp(config['INPUT_FIELD_HEIGHT'])
 
 
 class ClassicMethodsParam(BaseParamLayout):

@@ -5,6 +5,7 @@
 	pos_hint: {"center_x": 0.5, "center_y": 0.5}
 
 	MDTextFieldHelperText:
+	    id: hint_text
 		theme_font_size: "Custom"
 		font_size: "15sp"
 		text: "Некоректні дані"
@@ -79,3 +80,6 @@
             icon: "minus"
             on_release: root.decrement()
 
+<SystemFloatParam>:
+    hint: "c:"
+	padding: [0,0,0,0]

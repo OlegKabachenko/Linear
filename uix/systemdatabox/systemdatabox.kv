@@ -9,9 +9,24 @@
             id: size_param
             min_value: root.min_size
             max_value: root.max_size
+	ParameterBox:
+        id: system_input_box
+        size_hint: 1, None
+        height: system.height
 
-		ParameterBox:
-			id: extra_params_box
+        NestedHorizontalScrollView:
+            clip_behavior: 'clip_children'
+            do_scroll_x: True
+            do_scroll_y: False
 
-		ParameterBox:
-			id: system_input_box
+            SystemBox:
+                id: system
+
+
+	ParameterBox:
+		id: extra_params_box
+
+
+
+
+

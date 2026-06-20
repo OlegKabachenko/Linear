@@ -1,4 +1,4 @@
-__all__ = "IntegralDataBox"
+__all__ = "IntegralDataBox", "NestedHorizontalScrollView", "Outer"
 
 import os
 import sys
@@ -25,3 +25,9 @@ class RestrictedScrollView(ScrollView):
 
     def on_touch_up(self, touch):
         super().on_touch_up(touch)
+
+
+class NestedHorizontalScrollView(RestrictedScrollView):
+    def on_scroll_move(self, touch):
+        super().on_scroll_move(touch)
+        touch.ud['sv.handled']['y'] = False
