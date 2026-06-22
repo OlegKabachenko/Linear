@@ -28,6 +28,11 @@ class RestrictedScrollView(ScrollView):
 
 
 class NestedHorizontalScrollView(RestrictedScrollView):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.do_scroll_x = True
+        self.do_scroll_y = False
+
     def on_scroll_move(self, touch):
         super().on_scroll_move(touch)
         touch.ud['sv.handled']['y'] = False
