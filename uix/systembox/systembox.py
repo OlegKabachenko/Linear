@@ -12,12 +12,15 @@ from kivy.properties import NumericProperty
 from kivy.uix.widget import Widget
 from kivy.graphics import Line, Color, Rectangle, Bezier
 
+
+
 import numpy as np
 
 import time
 
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.params import SystemFloatParam
+from tools.system import System
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
@@ -96,6 +99,10 @@ class SystemBox(MDBoxLayout):
 
     def create_system(self, n):
         start = time.perf_counter()
+
+        if n is None:
+            return
+
         equations_box = self.ids.equations_box
 
         self.delete_system()
@@ -127,16 +134,31 @@ class SystemBox(MDBoxLayout):
 
     def change_size(self, new_n):
         start = time.perf_counter()
-        new_n = int(new_n)
+
+        try:
+            new_n = int(new_n)
+        except (TypeError, ValueError):
+            return
+
         if new_n <= 1:
             return
 
-        x, y = self.get_data()
+        system = self.get_data()
 
-        x = np.asarray(x, dtype=float)
-        y = np.asarray(y, dtype=float)
+        if system is None:
+            new_x = np.zeros((new_n, new_n), dtype=float)
+            new_y = np.zeros(new_n, dtype=float)
 
-        old_n = x.shape[0] if x.size else 0
+            self.create_system(new_n)
+            Clock.schedule_once(lambda dt: self.set_data(new_x, new_y))
+            return
+
+        x = system.get_x()
+        y = system.get_y()
+        old_n = system.get_n()
+
+        if new_n == old_n:
+            return
 
         new_x = np.zeros((new_n, new_n), dtype=float)
         new_y = np.zeros(new_n, dtype=float)
@@ -156,27 +178,21 @@ class SystemBox(MDBoxLayout):
     def get_data(self):
         equations_box = self.ids.equations_box
 
-        x_arr = []
-        y_arr = []
-
         rows = equations_box.children[::-1]
+        n = len(rows)
 
-        for row in rows:
+        x_arr = np.zeros((n, n), dtype=float)
+        y_arr = np.zeros(n, dtype=float)
+
+        for i, row in enumerate(rows):
             float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
 
-            x_row = []
-            for i in range(len(float_widgets) - 1):
-                x_row.append(float_widgets[i].get_params())
+            for j in range(len(float_widgets) - 1):
+                x_arr[i, j] = float_widgets[j].get_params()
 
-            y_val = float_widgets[-1].get_params()
+            y_arr[i] = float_widgets[-1].get_params()
 
-            x_arr.append(x_row)
-            y_arr.append(y_val)
-
-        x_arr = np.array(x_arr, dtype=float)
-        y_arr = np.array(y_arr, dtype=float)
-
-        return x_arr, y_arr
+            return System(n, x_arr, y_arr)
 
     def set_data(self, x_arr, y_arr):
         equations_box = self.ids.equations_box

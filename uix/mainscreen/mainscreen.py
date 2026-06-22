@@ -167,17 +167,19 @@ class MainScreen(MDScreen):
             parallel_swicth.disabled = True
 
     def set_input_values(self, i):
-        n = ""
-
         system = self.EXAMPLE_VALUES[i]
+
         if system is not None:
             n = system.get_n()
+            x = system.get_x()
+            y = system.get_y()
 
-        x = system.get_x()
-        y = system.get_y()
+            self.ids.systemdatabox.set_system_data(n, x, y)
+        else:
+            n = None
+            self.ids.systemdatabox.delete_system()
 
         self.ids.systemdatabox.set_system_size(n)
-        self.ids.systemdatabox.set_system_data(n, x, y)
 
     def get_current_method(self):
         return self.METHOD_VALUES[self.current_method_id]

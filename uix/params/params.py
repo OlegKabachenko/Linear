@@ -8,7 +8,7 @@ from kivy.lang import Builder
 
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.properties import NumericProperty, StringProperty, BooleanProperty
+from kivy.properties import NumericProperty, StringProperty, BooleanProperty, ObjectProperty
 from kivy.metrics import dp
 
 from kivymd.uix.boxlayout import MDBoxLayout
@@ -219,13 +219,13 @@ class DotsCntParam(IntParam):
 class SizeParamExtra(BaseParamLayout):
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
-    value = NumericProperty(0)
+    value = ObjectProperty(None, allownone=True)
 
     def _on_inner_value(self, value):
         try:
             self.value = float(value)
         except ValueError:
-            return
+            self.value = None
 
     def orientation_check(self):
         super().orientation_check()
