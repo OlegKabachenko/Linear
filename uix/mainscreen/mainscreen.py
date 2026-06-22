@@ -172,7 +172,12 @@ class MainScreen(MDScreen):
         system = self.EXAMPLE_VALUES[i]
         if system is not None:
             n = system.get_n()
+
+        x = system.get_x()
+        y = system.get_y()
+
         self.ids.systemdatabox.set_system_size(n)
+        self.ids.systemdatabox.set_system_data(n, x, y)
 
     def get_current_method(self):
         return self.METHOD_VALUES[self.current_method_id]

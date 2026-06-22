@@ -51,7 +51,7 @@ class SystemBrace(Widget):
         with self.canvas:
             Color(0, 0, 0, 1)
 
-            # Верхняя половина скобки
+            # Upper half of the bracket
             Line(
                 bezier=[
                     w_point + brace_width, h,
@@ -62,7 +62,7 @@ class SystemBrace(Widget):
                 width=2
             )
 
-            # Нижняя половина скобки
+            # Lower half of the bracket
             Line(
                 bezier=[
                     w_point + brace_width, top_bottom_margin,
@@ -72,7 +72,6 @@ class SystemBrace(Widget):
                 ],
                 width=2
             )
-
 
 
 class SystemLabel(MDLabel):
@@ -88,10 +87,6 @@ class SystemRow(MDBoxLayout):
 
 
 class SystemBox(MDBoxLayout):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        Clock.schedule_once(lambda dt: self.create_system(3)) #!!! Delete me
-
     def delete_system(self):
         self.ids.equations_box.clear_widgets()
 
@@ -120,14 +115,45 @@ class SystemBox(MDBoxLayout):
 
         Clock.schedule_once(self.update_brace)
 
-    def update_brace(self, dt=None):
-        eq = self.ids.equations_box
-        brace = self.ids.brace
+    def update_brace(self, *args):
+        self.ids.brace.redraw()
 
-        brace.height = eq.height
+    def get_data(self):
+        equations_box = self.ids.equations_box
 
-        print("brace height =", brace.height)
-        print("brace width =", brace.width)
-        print("brace pos =", brace.pos)
+        x_arr = []
+        y_arr = []
 
-        brace.redraw()
+        for row in equations_box.children[::-1]:
+
+            float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
+
+            *x_params, y_param = float_widgets
+
+            for p in x_params:
+                x_arr.append(p.get_params())
+
+            y_arr.append(y_param.get_params())
+
+        return x_arr, y_arr
+
+    def set_data(self, x_arr, y_arr):
+        equations_box = self.ids.equations_box
+        rows = equations_box.children[::-1]
+
+        idx = 0
+
+        for i in range(len(rows)):
+            row = rows[i]
+
+            float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
+
+            *x_params, y_param = float_widgets
+
+            for j in range(len(x_params)):
+                x_params[j].set_params(x_arr[idx])
+                idx += 1
+
+            y_param.set_params(y_arr[i])
+
+

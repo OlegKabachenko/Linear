@@ -47,6 +47,10 @@ class SystemDataBox(MDBoxLayout):
     def set_system_size(self, size):
         self.ids.size_param.set_params(size)
 
+    def set_system_data(self, n, x, y):
+        self.ids.system.create_system(n)
+        self.ids.system.set_data(x, y)
+
     def add_params(self, parent_id, params_widget, duration):
         parent_box = self.ids[parent_id]
 
