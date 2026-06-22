@@ -26,8 +26,10 @@
 
 <StandartParam>:
     id: param_root
+
 	ParameterText:
 		id: input
+		on_text: param_root.value = self.text
 		min_value: root.min_value
 		max_value: root.max_value
 		forbid_negative: param_root.forbid_negative_param
@@ -62,12 +64,13 @@
         padding:0
         SizeParam:
             id: size_param
+            on_value: root._on_inner_value(self.value)
             padding: 0
             min_value: root.min_value
             max_value: root.max_value
 
-    MDBoxLayout:
 
+    MDBoxLayout:
         id:buttons_box
         spacing: "6dp"
         SizableFabBtn:

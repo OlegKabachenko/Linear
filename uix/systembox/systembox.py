@@ -12,6 +12,10 @@ from kivy.properties import NumericProperty
 from kivy.uix.widget import Widget
 from kivy.graphics import Line, Color, Rectangle, Bezier
 
+import numpy as np
+
+import time
+
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.params import SystemFloatParam
 
@@ -91,6 +95,7 @@ class SystemBox(MDBoxLayout):
         self.ids.equations_box.clear_widgets()
 
     def create_system(self, n):
+        start = time.perf_counter()
         equations_box = self.ids.equations_box
 
         self.delete_system()
@@ -114,9 +119,39 @@ class SystemBox(MDBoxLayout):
             equations_box.add_widget(row)
 
         Clock.schedule_once(self.update_brace)
+        end = time.perf_counter()
+        print(f"create_system execution time: {end - start:.6f} sec")
 
     def update_brace(self, *args):
         self.ids.brace.redraw()
+
+    def change_size(self, new_n):
+        start = time.perf_counter()
+        new_n = int(new_n)
+        if new_n <= 1:
+            return
+
+        x, y = self.get_data()
+
+        x = np.asarray(x, dtype=float)
+        y = np.asarray(y, dtype=float)
+
+        old_n = x.shape[0] if x.size else 0
+
+        new_x = np.zeros((new_n, new_n), dtype=float)
+        new_y = np.zeros(new_n, dtype=float)
+
+        n_min = min(old_n, new_n)
+
+        if old_n > 0:
+            new_x[:n_min, :n_min] = x[:n_min, :n_min]
+            new_y[:n_min] = y[:n_min]
+
+        self.create_system(new_n)
+        self.set_data(new_x, new_y)
+
+        end = time.perf_counter()
+        print(f"change_size execution time: {end - start:.6f} sec")
 
     def get_data(self):
         equations_box = self.ids.equations_box
@@ -124,16 +159,22 @@ class SystemBox(MDBoxLayout):
         x_arr = []
         y_arr = []
 
-        for row in equations_box.children[::-1]:
+        rows = equations_box.children[::-1]
 
+        for row in rows:
             float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
 
-            *x_params, y_param = float_widgets
+            x_row = []
+            for i in range(len(float_widgets) - 1):
+                x_row.append(float_widgets[i].get_params())
 
-            for p in x_params:
-                x_arr.append(p.get_params())
+            y_val = float_widgets[-1].get_params()
 
-            y_arr.append(y_param.get_params())
+            x_arr.append(x_row)
+            y_arr.append(y_val)
+
+        x_arr = np.array(x_arr, dtype=float)
+        y_arr = np.array(y_arr, dtype=float)
 
         return x_arr, y_arr
 
@@ -141,19 +182,21 @@ class SystemBox(MDBoxLayout):
         equations_box = self.ids.equations_box
         rows = equations_box.children[::-1]
 
-        idx = 0
+        x_arr = np.asarray(x_arr)
+        y_arr = np.asarray(y_arr)
 
-        for i in range(len(rows)):
+        n = min(len(rows), x_arr.shape[0])
+
+        for i in range(n):
             row = rows[i]
 
             float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
 
-            *x_params, y_param = float_widgets
+            m = min(len(float_widgets) - 1, x_arr.shape[1])
 
-            for j in range(len(x_params)):
-                x_params[j].set_params(x_arr[idx])
-                idx += 1
+            for j in range(m):
+                float_widgets[j].set_params(x_arr[i, j])
 
-            y_param.set_params(y_arr[i])
+            float_widgets[-1].set_params(y_arr[i])
 
 

@@ -154,12 +154,13 @@ class StandartParam(BaseParamLayout):
     input_type = StringProperty()
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
+    value = StringProperty()
 
     def set_params(self, value):
         self.ids.input.text = "" if value is None else str(value)
 
 
-class IntParam(StandartParam):  #Integer parameter
+class IntParam(StandartParam):
     input_type = 'int'
 
     def get_params(self, **kwargs):
@@ -218,6 +219,13 @@ class DotsCntParam(IntParam):
 class SizeParamExtra(BaseParamLayout):
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
+    value = NumericProperty(0)
+
+    def _on_inner_value(self, value):
+        try:
+            self.value = float(value)
+        except ValueError:
+            return
 
     def orientation_check(self):
         super().orientation_check()
@@ -229,7 +237,6 @@ class SizeParamExtra(BaseParamLayout):
 
             for btn in self.ids.buttons_box.children:
                 btn.size_hint = (1, 0.7)
-
 
         else:
             self.spacing = "0dp"
