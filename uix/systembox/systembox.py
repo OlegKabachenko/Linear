@@ -97,6 +97,51 @@ class SystemBox(MDBoxLayout):
     def delete_system(self):
         self.ids.equations_box.clear_widgets()
 
+    def add_element(self, row, widget, index=None):
+        if index is None:
+            row.add_widget(widget)
+        else:
+            row.add_widget(widget, index=index)
+
+    def create_cell(self, row, i, n, is_x: bool, index=None):
+        float_param = SystemFloatParam()
+        float_param.set_params(0)
+        if is_x:
+            self.add_element(row,float_param,index)
+
+            label = SystemLabel(
+                    text=f"x[sub]{i + 1}[/sub]" + (" +" if i < n - 1 else ""),
+                    markup=True
+                )
+
+            self.add_element(row, label, index)
+
+        else:
+            self.add_element(row, SystemLabel(text="="), index)
+            self.add_element(row, float_param, index)
+            label = SystemLabel(text=f"y[sub]{i + 1}[/sub]", markup=True)
+            self.add_element(row, label, index)
+
+    def create_row(self, n, i, box):
+        row = SystemRow()
+        for j in range(n):
+            self.create_cell(row, j, n, True)
+        self.create_cell(row, i, n, False)
+
+        box.add_widget(row)
+
+    def change_last_x_lbl_in_row(self, row, i, x_num, need_plus: bool):
+        label = row.children[i]
+
+        label.text = (
+            f"x[sub]{x_num + 1}[/sub] +"
+            if need_plus else
+            f"x[sub]{x_num + 1}[/sub]"
+        )
+
+
+
+
     def create_system(self, n):
         start = time.perf_counter()
 
@@ -108,22 +153,7 @@ class SystemBox(MDBoxLayout):
         self.delete_system()
 
         for i in range(n):
-            row = SystemRow()
-
-            for j in range(n):
-                row.add_widget(SystemFloatParam())
-                row.add_widget(
-                    SystemLabel(
-                        text=f"x[sub]{j + 1}[/sub]" + (" +" if j < n - 1 else ""),
-                        markup=True
-                    )
-                )
-
-            row.add_widget(SystemLabel(text="="))
-            row.add_widget(SystemFloatParam())
-            row.add_widget(SystemLabel(text=f"y[sub]{i + 1}[/sub]", markup = True))
-
-            equations_box.add_widget(row)
+            self.create_row(n, i, equations_box)
 
         Clock.schedule_once(self.update_brace)
         end = time.perf_counter()
@@ -143,34 +173,49 @@ class SystemBox(MDBoxLayout):
         if new_n <= 1:
             return
 
-        system = self.get_data()
-
-        if system is None:
-            new_x = np.zeros((new_n, new_n), dtype=float)
-            new_y = np.zeros(new_n, dtype=float)
-
-            self.create_system(new_n)
-            Clock.schedule_once(lambda dt: self.set_data(new_x, new_y))
-            return
-
-        x = system.get_x()
-        y = system.get_y()
-        old_n = system.get_n()
+        equations_box = self.ids.equations_box
+        rows = list(equations_box.children)
+        old_n = len(rows)
 
         if new_n == old_n:
             return
 
-        new_x = np.zeros((new_n, new_n), dtype=float)
-        new_y = np.zeros(new_n, dtype=float)
+        if not rows:
+            self.create_system(new_n)
+            return
 
-        n_min = min(old_n, new_n)
+        if new_n == old_n:
+            return
 
-        if old_n > 0:
-            new_x[:n_min, :n_min] = x[:n_min, :n_min]
-            new_y[:n_min] = y[:n_min]
+        delta = abs(new_n - old_n)
 
-        self.create_system(new_n)
-        self.set_data(new_x, new_y)
+        equations_box = self.ids.equations_box
+        rows = list(equations_box.children)
+
+        tail_widget_cnt = 3
+
+        if old_n < new_n:
+            for row in rows:
+                self.change_last_x_lbl_in_row(row, tail_widget_cnt, old_n - 1, True)
+
+            for i in range(delta):
+                x_idx = old_n + i
+
+                for row in rows:
+                    self.create_cell(row, x_idx, new_n, True, tail_widget_cnt)
+
+                self.create_row(new_n, x_idx, equations_box)
+        else:
+            widgets_in_cell = 2
+            count = delta * widgets_in_cell
+
+            for i in range(delta):
+                equations_box.remove_widget(rows[i])
+
+            for row in equations_box.children:
+                for _ in range(count):
+                    row.remove_widget(row.children[tail_widget_cnt])
+                self.change_last_x_lbl_in_row(row, tail_widget_cnt, new_n - 1, False)
 
         end = time.perf_counter()
         print(f"change_size execution time: {end - start:.6f} sec")
