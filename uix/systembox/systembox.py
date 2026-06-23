@@ -12,11 +12,10 @@ from kivy.properties import NumericProperty
 from kivy.uix.widget import Widget
 from kivy.graphics import Line, Color, Rectangle, Bezier
 
-
-
 import numpy as np
 
 import time
+import gc
 
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.params import SystemFloatParam
@@ -95,7 +94,13 @@ class SystemRow(MDBoxLayout):
 
 class SystemBox(MDBoxLayout):
     def delete_system(self):
-        self.ids.equations_box.clear_widgets()
+        equations_box = self.ids.equations_box
+
+        for row in equations_box.children:
+            row.clear_widgets()
+
+        equations_box.clear_widgets()
+        Clock.schedule_once(lambda dt: gc.collect(), 0)
 
     def add_element(self, row, widget, index=None):
         if index is None:
@@ -139,12 +144,7 @@ class SystemBox(MDBoxLayout):
             f"x[sub]{x_num + 1}[/sub]"
         )
 
-
-
-
     def create_system(self, n):
-        start = time.perf_counter()
-
         if n is None:
             return
 
@@ -156,14 +156,11 @@ class SystemBox(MDBoxLayout):
             self.create_row(n, i, equations_box)
 
         Clock.schedule_once(self.update_brace)
-        end = time.perf_counter()
-        print(f"create_system execution time: {end - start:.6f} sec")
 
     def update_brace(self, *args):
         self.ids.brace.redraw()
 
     def change_size(self, new_n):
-        start = time.perf_counter()
 
         try:
             new_n = int(new_n)
@@ -176,9 +173,6 @@ class SystemBox(MDBoxLayout):
         equations_box = self.ids.equations_box
         rows = list(equations_box.children)
         old_n = len(rows)
-
-        if new_n == old_n:
-            return
 
         if not rows:
             self.create_system(new_n)
@@ -209,16 +203,18 @@ class SystemBox(MDBoxLayout):
             widgets_in_cell = 2
             count = delta * widgets_in_cell
 
-            for i in range(delta):
-                equations_box.remove_widget(rows[i])
+            removed_rows = rows[:delta]
+            for row in removed_rows:
+                row.clear_widgets()
+
+            equations_box.clear_widgets(children=removed_rows)
 
             for row in equations_box.children:
-                for _ in range(count):
-                    row.remove_widget(row.children[tail_widget_cnt])
+                removed_cells = row.children[tail_widget_cnt:tail_widget_cnt + count]
+                row.clear_widgets(children=removed_cells)
                 self.change_last_x_lbl_in_row(row, tail_widget_cnt, new_n - 1, False)
 
-        end = time.perf_counter()
-        print(f"change_size execution time: {end - start:.6f} sec")
+            Clock.schedule_once(lambda dt: gc.collect(), 0)
 
     def get_data(self):
         equations_box = self.ids.equations_box
@@ -237,7 +233,7 @@ class SystemBox(MDBoxLayout):
 
             y_arr[i] = float_widgets[-1].get_params()
 
-            return System(n, x_arr, y_arr)
+        return System(n, x_arr, y_arr)
 
     def set_data(self, x_arr, y_arr):
         equations_box = self.ids.equations_box
