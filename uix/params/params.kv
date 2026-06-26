@@ -75,16 +75,19 @@
         spacing: "6dp"
         SizableFabBtn:
             id: plus_button
+            ripple_scale: 0
             icon: "plus"
             on_release: root.increment()
 
         SizableFabBtn:
             id: minus_button
+            ripple_scale: 0
             icon: "minus"
             on_release: root.decrement()
 
         SizableFabBtn:
             id: size_apply
+            ripple_scale: 0
             icon: "check"
             on_release: root.dispatch_apply_action()
 
