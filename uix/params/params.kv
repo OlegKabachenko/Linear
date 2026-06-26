@@ -62,13 +62,13 @@
         id: size_box
         spacing:0
         padding:0
+
         SizeParam:
             id: size_param
             on_value: root._on_inner_value(self.value)
             padding: 0
             min_value: root.min_value
             max_value: root.max_value
-
 
     MDBoxLayout:
         id:buttons_box
@@ -82,6 +82,11 @@
             id: minus_button
             icon: "minus"
             on_release: root.decrement()
+
+        SizableFabBtn:
+            id: size_apply
+            icon: "check"
+            on_release: root.dispatch_apply_action()
 
 <SystemFloatParam>:
     hint: "c:"

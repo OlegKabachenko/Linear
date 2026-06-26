@@ -9,6 +9,7 @@ from kivy.lang import Builder
 from kivymd.uix.button import MDFabButton
 from kivymd.uix.button import MDExtendedFabButton
 from kivymd.app import MDApp
+from kivy.clock import Clock
 from kivy.properties import StringProperty, ColorProperty
 from kivymd.icon_definitions import md_icons
 
@@ -77,6 +78,7 @@ class SizableFabTextBtn(MDExtendedFabButton, SizableFontMixin):
 
     def update_button_text(self, instance, value):
         self.ids.text.text = value
+        self.ids.text.opacity = 1
 
     def update_text_font_size(self, instance, value):
         if 'text' in self.ids:

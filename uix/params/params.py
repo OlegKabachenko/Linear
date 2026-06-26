@@ -11,6 +11,7 @@ from kivy.clock import Clock
 from kivy.properties import NumericProperty, StringProperty, BooleanProperty, ObjectProperty
 from kivy.metrics import dp
 
+from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.textfield import MDTextField
 from kivymd.uix.widget import MDWidget
@@ -22,8 +23,8 @@ from re import findall, match
 
 from uix.mixins import SizableFontMixin
 from uix.sizablebtn import SizableFabBtn
+from uix.customdialog import ErrorDialog
 
-from kivy_garden.matplotlib.backend_kivyagg import FigureCanvasKivyAgg
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
@@ -156,6 +157,9 @@ class StandartParam(BaseParamLayout):
     max_value = NumericProperty(None)
     value = StringProperty()
 
+    def has_error(self):
+        return self.ids.input.error
+
     def set_params(self, value):
         self.ids.input.text = "" if value is None else str(value)
 
@@ -221,6 +225,10 @@ class SizeParamExtra(BaseParamLayout):
     max_value = NumericProperty(None)
     value = ObjectProperty(None, allownone=True)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.register_event_type("on_apply")
+
     def _on_inner_value(self, value):
         try:
             self.value = float(value)
@@ -231,8 +239,8 @@ class SizeParamExtra(BaseParamLayout):
         super().orientation_check()
         if self.orientation == "horizontal":
             self.spacing = "10dp"
-            self.ids.size_box.size_hint = (0.7, 1)
-            self.ids.buttons_box.size_hint = (0.3, 1)
+            self.ids.size_box.size_hint = (0.6, 1)
+            self.ids.buttons_box.size_hint = (0.4, 1)
             self.set_bottom_padding(0)
 
             for btn in self.ids.buttons_box.children:
@@ -256,9 +264,23 @@ class SizeParamExtra(BaseParamLayout):
 
     def increment(self):
         self._change_value(1)
+        self.dispatch_apply_action()
 
     def decrement(self):
         self._change_value(-1)
+        self.dispatch_apply_action()
+
+    def dispatch_apply_action(self):
+        if not self.ids.size_param.has_error():
+            self.dispatch("on_apply", self.value)
+        else:
+            a = ErrorDialog(
+                f"Значення має бути від {self.min_value} до {self.max_value}."
+            )
+            a.open()
+
+    def on_apply(self, value):
+        pass
 
     def _change_value(self, delta):
         widget = self.ids.size_param

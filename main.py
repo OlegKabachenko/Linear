@@ -18,7 +18,6 @@ class LinearApp(BaseApp):
         super().__init__(MainScreen, config['CARD_L_COLOR'], **kwargs)
         self.app_config = config
 
-
     def build(self):
         super().build()
         return self.main_screen
