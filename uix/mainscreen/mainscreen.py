@@ -7,6 +7,8 @@ import sys
 from pathlib import Path
 from kivy.lang import Builder
 
+import time
+
 from kivymd.uix.screen import MDScreen
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
@@ -22,7 +24,8 @@ from uix.restrictedscrollview import RestrictedScrollView
 from uix.systemdatabox import SystemDataBox
 from uix.customdialog import ErrorDialog
 from uix.params import ClassicMethodsParam, DotsCntParam
-from uix.sizablebtn import ExitBtn
+from uix.sizablebtn import ExitBtn, SizableFabBtn
+
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
@@ -92,6 +95,7 @@ class MainScreen(MDScreen):
         solver = Solver()
         self.METHODS = solver.METHODS
         self.METHOD_KEYS = list(self.METHODS.keys())
+        self.METHOD_VALUES = [info["function"] for info in self.METHODS.values()]
 
     def _init_widgets(self):
         self.error_dialog = ErrorDialog()
@@ -183,3 +187,27 @@ class MainScreen(MDScreen):
 
     def get_current_method(self):
         return self.METHOD_VALUES[self.current_method_id]
+
+    def get_system_roots(self):
+        params = self.ids.systemdatabox.get_system_params()
+        if params is None:
+            self.show_error("Будь ласка, правильно заповніть поля!")
+            return
+
+        system, extra_params = params
+        method = self.get_current_method()
+
+        result, exec_time = self.call_solver(system, method, **extra_params)
+
+    def call_solver(self, system: System, method, **kwargs):
+        start_time = time.time()
+        result = method(system, **kwargs)
+        end_time = time.time()
+
+        exec_time = end_time - start_time
+
+        return result, exec_time
+
+    def show_error(self, text):
+        self.error_dialog.set_head_text(text)
+        self.error_dialog.open()

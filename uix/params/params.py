@@ -157,6 +157,9 @@ class StandartParam(BaseParamLayout):
     max_value = NumericProperty(None)
     value = StringProperty()
 
+    def is_error(self):
+        return self.ids.input.error
+
     def has_error(self):
         return self.ids.input.error
 
@@ -204,8 +207,8 @@ class ClassicMethodsParam(BaseParamLayout):
 
     def get_params(self, **kwargs):
         result = {
-            "scale": self.get_param_text(self.ids.scale),
-            "limit": self.get_param_text(self.ids.limit)
+            "scale": self.ids.scale.get_params(),
+            "limit": self.ids.limit.get_params()
         }
         return result
 
@@ -281,6 +284,9 @@ class SizeParamExtra(BaseParamLayout):
 
     def on_apply(self, value):
         pass
+
+    def is_error(self):
+        return self.ids.size_param.is_error()
 
     def _change_value(self, delta):
         widget = self.ids.size_param

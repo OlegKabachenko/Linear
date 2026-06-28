@@ -29,17 +29,22 @@ class SystemDataBox(MDBoxLayout):
     min_size = NumericProperty(None)
     max_size = NumericProperty(None)
 
-    def get_integral_params(self):
+    def get_system_params(self):
         extra_params_box = self.ids.extra_params_box
         extra_params = {}
 
+        if self.ids.size_param.is_error():
+            return None
+
         try:
-            size = self.ids.size_param_box.get_params()
+
+            system = self.ids.system.get_data()
 
             if extra_params_box.children:
-                extra_params = extra_method_params_box.children[0].get_params()
+                for child in extra_params_box.children:
+                    extra_params.update(child.get_params())
 
-            return size, extra_params
+            return system, extra_params
 
         except ValueError:
             return None
