@@ -37,8 +37,7 @@
 		MDTextFieldHintText:
 			text: param_root.hint
 
-
-<ClassicMethodsParam>:
+<PreconditionParams>:
     padding: 0
 
     MDBoxLayout:
@@ -56,6 +55,29 @@
             hint: "Ліміт ітерацій"
             min_value: root.min_itr
             max_value: root.max_itr
+
+<ClassicMethodsParam>:
+    orientation: "vertical"
+    padding: (0, 10, 0, 0)
+    spacing:
+
+    MDBoxLayout:
+	    size_hint_y: None
+	    height: 60
+        padding: (30, 0, 30, 0)
+        SelectorBox:
+            id: precondition_mtd
+            size_hint: 1,1
+            btn_color_is_custom: True
+            btn_custom_color: [0.318, 0.569, 0.792, 1]
+
+    PreconditionParams:
+        id: precondition_params
+
+    MDWidget:
+        id: dummy
+	    size_hint_y: None
+        height: dp(60)
 
 <SizeParamExtra>:
     MDBoxLayout:

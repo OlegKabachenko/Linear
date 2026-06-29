@@ -24,6 +24,10 @@ from re import findall, match
 from uix.mixins import SizableFontMixin
 from uix.sizablebtn import SizableFabBtn
 from uix.customdialog import ErrorDialog
+from uix.bigtouchswitch import BigTouchSwitch
+from uix.controlbox import SelectorBox
+
+from tools.preprocessing import registry
 
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
@@ -122,7 +126,7 @@ class BaseParamLayout(MDBoxLayout):  #Base layout for function parameters
 
         elif (critical_wdth <= screen_height and self.height != v_height) or self.first_call:
             self.orientation = "vertical"
-            self.spacing = "5sp"
+            self.spacing = "5dp"
             if not self.is_animated:
                 self.height = v_height
 
@@ -195,7 +199,7 @@ class SystemFloatParam(FloatParam):
         field.height = dp(config['INPUT_FIELD_HEIGHT'])
 
 
-class ClassicMethodsParam(BaseParamLayout):
+class PreconditionParams(BaseParamLayout):
     min_scale = NumericProperty(None)
     max_scale = NumericProperty(None)
     min_itr = NumericProperty(None)
@@ -210,6 +214,82 @@ class ClassicMethodsParam(BaseParamLayout):
             "scale": self.ids.scale.get_params(),
             "limit": self.ids.limit.get_params()
         }
+        return result
+
+
+class ClassicMethodsParam(BaseParamLayout):
+    min_scale = NumericProperty(None)
+    max_scale = NumericProperty(None)
+    min_itr = NumericProperty(None)
+    max_itr = NumericProperty(None)
+
+    current_p_method_id = NumericProperty(None)
+    default_p_method_id = config['DEFAULT_P_MTD_ID']
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._init_selector()
+
+    def _init_selector(self):
+        selector = self.ids.precondition_mtd
+
+        self.current_p_method_id = self.default_p_method_id
+        selector.default_element_id = self.default_p_method_id
+
+        selector.items_list = [label for _, label in registry.items()]
+
+        selector.bind(on_select=lambda _, s_id, prev_id: self.handle_p_method_select(s_id, prev_id))
+
+        self.handle_p_method_select(self.default_p_method_id, -9)
+
+    def handle_p_method_select(self, s_id, prev_id):
+        if s_id == prev_id:
+            return
+
+        strategy = registry.get_by_id(s_id)
+
+        self.current_p_method_id = s_id
+
+        precondition_params = self.ids.precondition_params
+
+        precondition_params.opacity = 1 if strategy.key == "prec" else 0
+
+    def orientation_check(self):
+        screen_width = Window.width
+        screen_height = Window.height
+        critical_wdth = screen_width * config['APP_WIDE_SCR_MULT']
+
+        if critical_wdth > screen_height and self.height != self.h_height:
+            self.spacing = "0dp"
+        else:
+            self.spacing = "10sp"
+
+        Clock.schedule_once(self._update_height, 0)
+
+    def _update_height(self, dt):
+        if not self.is_animated:
+            total_height = sum(child.height for child in self.children)
+
+            spacing = self.spacing if isinstance(self.spacing, (int, float)) else self.spacing[1]
+            total_height += spacing * max(0, len(self.children))
+            total_height += self.padding[1] + self.padding[3]
+
+            self.height = total_height
+
+    def set_params(self, scale, limit):
+        self.ids.precondition_params.set_params(scale, limit)
+
+    def get_params(self, **kwargs):
+        strategy = registry.get_by_id(self.current_p_method_id)
+        key = strategy.key
+
+        if key == "prec":
+            result = self.ids.precondition_params.get_params()
+        else:
+            result = {"scale": 0, "limit": 0}
+
+        result["p_type"] = key
+
         return result
 
 

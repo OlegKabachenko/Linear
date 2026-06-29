@@ -22,7 +22,7 @@ from uix.mixins import SizableFontMixin
 from uix.sizablebtn import SizableFabBtn
 
 from kivy.core.window import Window
-from kivy.properties import ListProperty, ObjectProperty, NumericProperty
+from kivy.properties import ListProperty, ObjectProperty, NumericProperty, BooleanProperty, ColorProperty
 from kivy.clock import Clock
 from kivy.properties import ListProperty
 
@@ -67,14 +67,26 @@ class ControlLabel(MDLabel, SizableFontMixin):
 class ControlBox(MDBoxLayout):
     button_type = ObjectProperty(ControlButton)
 
+    btn_color_is_custom = BooleanProperty(False)
+    btn_custom_color = ColorProperty([0, 0, 0, 0])
+
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.register_event_type('on_btn_click')
 
         self.button = self.button_type()
         self.ids["button"] = self.button
+
+        self.bind(btn_color_is_custom=self.apply_button_color)
+        self.bind(btn_custom_color=self.apply_button_color)
+
         self.add_widget(self.button)
         self.create_label_area()
+
+    def apply_button_color(self, *args):
+        if self.btn_color_is_custom:
+            self.button.theme_bg_color = "Custom"
+            self.button.md_bg_color = self.btn_custom_color
 
     def create_label_area(self):
         lbl_area = LabelArea()

@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from kivy.lang import Builder
 
+from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.clock import Clock
 from kivy.metrics import sp
@@ -36,6 +37,17 @@ class SystemBrace(Widget):
         super().__init__(**kwargs)
         self.bind(pos=self.redraw, size=self.redraw)
 
+        self.app = MDApp.get_running_app()
+        self.app.theme_cls.bind(theme_style=self.redraw)
+
+    def get_brace_color(self):
+
+
+        if self.app.theme_cls.theme_style == "Dark":
+            return (1, 1, 1, 1)
+        else:
+            return (0, 0, 0, 1)
+
     def redraw(self, *args):
         self.canvas.clear()
 
@@ -54,8 +66,10 @@ class SystemBrace(Widget):
         h = self.height - top_bottom_margin
         m = h / 2
 
+        color = self.get_brace_color()
+
         with self.canvas:
-            Color(0, 0, 0, 1)
+            Color(*color)
 
             # Upper half of the bracket
             Line(
