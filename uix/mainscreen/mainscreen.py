@@ -197,6 +197,8 @@ class MainScreen(MDScreen):
         system, extra_params = params
         method = self.get_current_method()
 
+        self.call_solver(system, method, **extra_params)
+
         #result, exec_time = self.call_solver(system, method, **extra_params)
 
     def call_solver(self, system: System, method, **kwargs):
