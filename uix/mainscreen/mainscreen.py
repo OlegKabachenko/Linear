@@ -16,6 +16,7 @@ from kivymd.uix.boxlayout import MDBoxLayout
 
 from tools.solver import Solver
 from tools.system import System
+from tools.solver import MaxIterationsExceeded
 
 from uix.controlbox import SelectorBox
 from uix.bigtouchswitch import ThemeSwitch, ParallelSwitch
@@ -206,13 +207,17 @@ class MainScreen(MDScreen):
         #result, exec_time = self.call_solver(system, method, **extra_params)
 
     def call_solver(self, system: System, method, **kwargs):
-        start_time = time.time()
-        result = method(system, **kwargs)
-        end_time = time.time()
+        try:
+            start_time = time.time()
+            result = method(system, kwargs)
+            end_time = time.time()
 
-        exec_time = end_time - start_time
+            exec_time = end_time - start_time
 
-        return result, exec_time
+            return result, exec_time
+        except MaxIterationsExceeded:
+            self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
+
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)

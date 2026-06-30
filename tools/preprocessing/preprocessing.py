@@ -13,9 +13,17 @@ class Preconditioning(PreprocessingStrategy):
     key = "prec"
     label = "Попереднє кондиціонування"
 
+    def custom_round(self, a):
+        sign = np.sign(a)
+
+        abs_a = np.abs(a)
+        a_round_abs = np.where(abs_a % 1 >= 0.7, np.ceil(abs_a), np.floor(abs_a))
+
+        return a_round_abs * sign
+
     def scale_matrix(self, a, scale=10):
-        a_scaled = np.round(a * scale)
-        return a_scaled
+        a_scaled = a * scale
+        return self.custom_round(a_scaled)
 
     def is_diagonally_dominant(self, a):
         n = len(a)
@@ -98,7 +106,7 @@ class Spectral(PreprocessingStrategy):
 
         v = 1 / spectral_radius
 
-        eps = v / 2
+        eps = v / 10
 
         alpha = a * eps
 

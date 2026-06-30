@@ -41,7 +41,7 @@ with open(config_path, 'r') as file, \
 
 
 class ParameterText(MDTextField, SizableFontMixin):
-    is_required = True
+    is_required = BooleanProperty(True)
     forbid_negative = BooleanProperty(False)
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
@@ -253,9 +253,9 @@ class ClassicMethodsParam(BaseParamLayout):
 
         self.current_p_method_id = s_id
 
-        precondition_params = self.ids.precondition_params
+        scale_param = self.ids.scale
 
-        precondition_params.opacity = 1 if strategy.key == "prec" else 0
+        scale_param.opacity = 1 if strategy.key == "prec" else 0
 
     def orientation_check(self):
         screen_width = Window.width
@@ -279,23 +279,18 @@ class ClassicMethodsParam(BaseParamLayout):
 
             self.height = total_height
 
-    def set_params(self, scale, limit):
-        self.ids.precondition_params.set_params(scale, limit)
-
     def get_params(self, **kwargs):
         strategy = registry.get_by_id(self.current_p_method_id)
         key = strategy.key
 
-        if key == "prec":
-            result = self.ids.precondition_params.get_params()
-        else:
-            result = {"scale": 0, "limit": 0}
+        result = {"limit": self.ids.limit.get_params(),
+                  "eps": self.ids.eps.get_params(),
+                  "p_type": key}
 
-        result["p_type"] = key
-        result["eps"] = self.ids.eps.get_params()
+        if key == "prec":
+            result["scale"] = self.ids.scale.get_params()
 
         return result
-
 
 class SizeParam(IntParam):
     forbid_negative_param = True

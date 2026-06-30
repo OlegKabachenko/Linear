@@ -39,37 +39,26 @@
 		MDTextFieldHintText:
 			text: param_root.hint
 
-<PreconditionParams>:
-    padding: 0
+<ClassicMethodsParam>:
+    orientation: "vertical"
+    padding: (0, 10, 0, 0)
 
-    MDBoxLayout:
-        IntParam:
-            id: scale
+    BaseParamLayout:
+        padding: 0
+        FloatParam:
+            id: eps
             forbid_negative_param: True
-            hint: "Множник матриць"
-            min_value: root.min_scale
-            max_value: root.max_scale
+            can_be_zero: True
+            hint: "Похибка"
+            min_value: root.min_eps
+            max_value: root.max_eps
 
-    MDBoxLayout:
         IntParam:
             id: limit
             forbid_negative_param: True
             hint: "Ліміт ітерацій"
             min_value: root.min_itr
             max_value: root.max_itr
-
-<ClassicMethodsParam>:
-    orientation: "vertical"
-    padding: (0, 10, 0, 0)
-
-
-    FloatParam:
-        id: eps
-        forbid_negative_param: True
-        can_be_zero: True
-        hint: "Похибка"
-        min_value: root.min_eps
-        max_value: root.max_eps
 
     MDBoxLayout:
 	    size_hint_y: None
@@ -81,12 +70,12 @@
             btn_color_is_custom: True
             btn_custom_color: [0.318, 0.569, 0.792, 1]
 
-    PreconditionParams:
-        id: precondition_params
-        min_scale: root.min_scale
-        max_scale: root.max_scale
-        min_itr: root.min_itr
-        max_itr: root.max_itr
+    IntParam:
+        id: scale
+        forbid_negative_param: True
+        hint: "Множник матриць"
+        min_value: root.min_scale
+        max_value: root.max_scale
 
     MDWidget:
         id: dummy
