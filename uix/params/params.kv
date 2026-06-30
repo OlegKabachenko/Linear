@@ -30,9 +30,11 @@
 	ParameterText:
 		id: input
 		on_text: param_root.value = self.text
-		min_value: root.min_value
-		max_value: root.max_value
+		min_value: param_root.min_value
+		max_value: param_root.max_value
 		forbid_negative: param_root.forbid_negative_param
+		can_be_zero: param_root.can_be_zero
+
 		input_filter: param_root.input_type
 		MDTextFieldHintText:
 			text: param_root.hint
@@ -59,12 +61,20 @@
 <ClassicMethodsParam>:
     orientation: "vertical"
     padding: (0, 10, 0, 0)
-    spacing:
+
+
+    FloatParam:
+        id: eps
+        forbid_negative_param: True
+        can_be_zero: True
+        hint: "Похибка"
+        min_value: root.min_eps
+        max_value: root.max_eps
 
     MDBoxLayout:
 	    size_hint_y: None
-	    height: 60
-        padding: (30, 0, 30, 0)
+	    height: 70
+        padding: (30, 10, 30, 0)
         SelectorBox:
             id: precondition_mtd
             size_hint: 1,1
@@ -73,6 +83,10 @@
 
     PreconditionParams:
         id: precondition_params
+        min_scale: root.min_scale
+        max_scale: root.max_scale
+        min_itr: root.min_itr
+        max_itr: root.max_itr
 
     MDWidget:
         id: dummy

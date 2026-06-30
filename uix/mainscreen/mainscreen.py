@@ -67,6 +67,8 @@ class MainScreen(MDScreen):
         self.max_scale = self.app_config["MAX_SCALE"]
         self.min_max_itr = self.app_config["MIN_MAX_ITR"]
         self.max_max_itr = self.app_config["MAX_MAX_ITR"]
+        self.min_eps = self.app_config["MIN_EPS"]
+        self.max_eps = self.app_config["MAX_EPS"]
 
     def _init_constants(self):
         self.ROUND_PRECISION = config['ROUND_PRECISION']
@@ -104,6 +106,8 @@ class MainScreen(MDScreen):
             max_scale=self.max_scale,
             min_itr=self.min_max_itr,
             max_itr=self.max_max_itr,
+            min_eps=self.min_eps,
+            max_eps=self.max_eps,
         )
         self.monte_param = DotsCntParam()
 

@@ -159,6 +159,7 @@ class StandartParam(BaseParamLayout):
     input_type = StringProperty()
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
+    can_be_zero = BooleanProperty(False)
     value = StringProperty()
 
     def is_error(self):
@@ -222,6 +223,8 @@ class ClassicMethodsParam(BaseParamLayout):
     max_scale = NumericProperty(None)
     min_itr = NumericProperty(None)
     max_itr = NumericProperty(None)
+    min_eps = NumericProperty(None)
+    max_eps = NumericProperty(None)
 
     current_p_method_id = NumericProperty(None)
     default_p_method_id = config['DEFAULT_P_MTD_ID']
@@ -289,6 +292,7 @@ class ClassicMethodsParam(BaseParamLayout):
             result = {"scale": 0, "limit": 0}
 
         result["p_type"] = key
+        result["eps"] = self.ids.eps.get_params()
 
         return result
 
