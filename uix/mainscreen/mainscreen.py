@@ -177,6 +177,10 @@ class MainScreen(MDScreen):
             parallel_swicth.active = False
             parallel_swicth.disabled = True
 
+    def is_parallel_mode_enabled(self):
+        parallel_switch = self.ids.parallel_switch
+        return parallel_switch.active and not parallel_switch.disabled
+
     def set_input_values(self, i):
         system = self.EXAMPLE_VALUES[i]
 
@@ -206,17 +210,19 @@ class MainScreen(MDScreen):
 
         self.call_solver(system, method, **extra_params)
 
-        #result, exec_time = self.call_solver(system, method, **extra_params)
+        result, exec_time = self.call_solver(system, method, **extra_params)
 
     def call_solver(self, system: System, method, **kwargs):
         try:
             start_time = time.time()
-            result = method(system, kwargs)
+
+            result = method(system, kwargs, self.is_parallel_mode_enabled())
             end_time = time.time()
 
             exec_time = end_time - start_time
-
+            print(exec_time)
             return result, exec_time
+
         except MaxIterationsExceeded:
             self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
         except LinAlgError:
