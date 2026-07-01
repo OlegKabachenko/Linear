@@ -101,6 +101,7 @@ class Spectral(PreprocessingStrategy):
 
     def process(self, a, b, params):
         eigenvalues = np.linalg.eigvals(a)
+
         spectral_radius = max(abs(eigenvalues))
         a_inv = np.linalg.inv(a)
 

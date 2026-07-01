@@ -9,6 +9,8 @@ from kivy.lang import Builder
 
 import time
 
+from numpy.linalg import LinAlgError
+
 from kivymd.uix.screen import MDScreen
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
@@ -217,7 +219,8 @@ class MainScreen(MDScreen):
             return result, exec_time
         except MaxIterationsExceeded:
             self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
-
+        except LinAlgError:
+            self.show_error("Матриця вироджена, неможливо застосувати передобробку!")
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)

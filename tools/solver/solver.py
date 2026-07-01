@@ -61,15 +61,38 @@ class Solver():
             error = np.max(np.abs(x_new - x))
 
             if error < eps:
-                return x_new, iteration + 1, error
+                print(x)
+                return x_new, iteration + 1
 
             x = np.copy(x_new)
 
         raise MaxIterationsExceeded()
 
     def seidel_method(self, system: System, params: dict[str, Any]):
-        a, b = self._apply_preprocessing(system, kwargs)
+        a, b = self._apply_preprocessing(system, params)
 
+        eps = params.get("eps", 0.01)
+        limit = params.get("limit", 15)
+        n = system.get_n()
+        x = np.copy(b)
+
+        for iteration in range(limit):
+            x_old = np.copy(x)
+
+            for i in range(n):
+                s = 0.0
+                for j in range(n):
+                    s += a[i][j] * x[j]
+
+                x[i] = s + b[i]
+
+            error = np.max(np.abs(x - x_old))
+
+            if error < eps:
+                print(x)
+                return x, iteration + 1
+
+        raise MaxIterationsExceeded()
 
     def monte_carlo_method(self, system: System, params: dict[str, Any]):
         pass
