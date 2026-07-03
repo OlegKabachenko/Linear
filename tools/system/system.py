@@ -53,3 +53,7 @@ class System:
 
         return y
 
+    def verify_solution(self, x):
+        calculated = self.__x @ x
+        return np.abs(calculated - self.__y)
+

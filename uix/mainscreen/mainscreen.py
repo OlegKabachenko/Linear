@@ -210,18 +210,18 @@ class MainScreen(MDScreen):
 
         self.call_solver(system, method, **extra_params)
 
-        result, exec_time = self.call_solver(system, method, **extra_params)
+        result, itr, exec_time = self.call_solver(system, method, **extra_params)
+        deltas = system.verify_solution(result)
 
     def call_solver(self, system: System, method, **kwargs):
         try:
             start_time = time.time()
 
-            result = method(system, kwargs, self.is_parallel_mode_enabled())
+            result, itr = method(system, kwargs, self.is_parallel_mode_enabled())
             end_time = time.time()
 
             exec_time = end_time - start_time
-            print(exec_time)
-            return result, exec_time
+            return result, itr, exec_time
 
         except MaxIterationsExceeded:
             self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
