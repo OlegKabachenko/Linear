@@ -1,3 +1,6 @@
+import multiprocessing
+multiprocessing.freeze_support()
+
 from pathlib import Path
 import yaml
 import os

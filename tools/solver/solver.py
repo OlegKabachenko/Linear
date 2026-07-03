@@ -3,8 +3,8 @@ __all__ = "Solver, MaxIterationsExceeded"
 
 from typing import Any
 import numpy as np
-from multiprocessing import shared_memory, Pool
-from multiprocessing.managers import SharedMemoryManager
+from multiprocessing import Pool
+
 
 from tools.system import System
 from tools.preprocessing import registry
