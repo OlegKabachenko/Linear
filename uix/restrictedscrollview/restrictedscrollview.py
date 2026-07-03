@@ -1,4 +1,4 @@
-__all__ = "IntegralDataBox", "NestedHorizontalScrollView", "Outer"
+__all__ = "RestrictedScrollView", "NestedHorizontalScrollView"
 
 import os
 import sys

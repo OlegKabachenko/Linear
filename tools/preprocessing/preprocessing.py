@@ -1,29 +1,16 @@
 import numpy as np
 
 
+class FailedPreprocessingStrategy(Exception):
+    pass
+
+
 class PreprocessingStrategy:
     key = None
     label = None
 
     def process(self, a, b, params):
         raise NotImplementedError
-
-
-class Preconditioning(PreprocessingStrategy):
-    key = "prec"
-    label = "Попереднє кондиціонування"
-
-    def custom_round(self, a):
-        sign = np.sign(a)
-
-        abs_a = np.abs(a)
-        a_round_abs = np.where(abs_a % 1 >= 0.7, np.ceil(abs_a), np.floor(abs_a))
-
-        return a_round_abs * sign
-
-    def scale_matrix(self, a, scale=10):
-        a_scaled = a * scale
-        return self.custom_round(a_scaled)
 
     def is_diagonally_dominant(self, a):
         n = len(a)
@@ -68,6 +55,8 @@ class Preconditioning(PreprocessingStrategy):
 
         for i in range(n):
             diag = a[i][i]
+            if np.isclose(diag, 0):
+                raise FailedPreprocessingStrategy()
 
             for j in range(n):
                 if i == j:
@@ -78,6 +67,23 @@ class Preconditioning(PreprocessingStrategy):
             d[i] = b[i] / diag
 
         return c, d
+
+
+class Preconditioning(PreprocessingStrategy):
+    key = "prec"
+    label = "Попереднє кондиціонування"
+
+    def custom_round(self, a):
+        sign = np.sign(a)
+
+        abs_a = np.abs(a)
+        a_round_abs = np.where(abs_a % 1 >= 0.7, np.ceil(abs_a), np.floor(abs_a))
+
+        return a_round_abs * sign
+
+    def scale_matrix(self, a, scale=10):
+        a_scaled = a * scale
+        return self.custom_round(a_scaled)
 
     def process(self, a, b, params):
         scale = params["scale"]
@@ -122,7 +128,13 @@ class NonePreprocessing(PreprocessingStrategy):
     label = "Без передобробки"
 
     def process(self, a, b, params):
-        return a, b
+
+        if not (self.is_diagonally_dominant(a)):
+            a, b = self.to_dominant(a, b)
+
+        an, bn = self.to_canonical_iterative_form(a, b)
+
+        return an, bn
 
 
 class PreprocessingRegistry:

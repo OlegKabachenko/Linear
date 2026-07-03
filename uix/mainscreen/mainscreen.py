@@ -15,10 +15,13 @@ from kivymd.uix.screen import MDScreen
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.loadingindicator import MDLoadingIndicator
+from kivymd.uix.label import MDLabel
 
 from tools.solver import Solver
 from tools.system import System
 from tools.solver import MaxIterationsExceeded
+from tools.preprocessing import FailedPreprocessingStrategy
 
 from uix.controlbox import SelectorBox
 from uix.bigtouchswitch import ThemeSwitch, ParallelSwitch
@@ -208,10 +211,14 @@ class MainScreen(MDScreen):
         system, extra_params = params
         method = self.get_current_method()
 
-        self.call_solver(system, method, **extra_params)
+        result = self.call_solver(system, method, **extra_params)
 
-        result, itr, exec_time = self.call_solver(system, method, **extra_params)
-        deltas = system.verify_solution(result)
+        if result is not None:
+            x, itr, exec_time = result
+            deltas = system.verify_solution(x)
+            print(x)
+            print(deltas)
+            print(itr)
 
     def call_solver(self, system: System, method, **kwargs):
         try:
@@ -227,6 +234,8 @@ class MainScreen(MDScreen):
             self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
         except LinAlgError:
             self.show_error("Матриця вироджена, неможливо застосувати передобробку!")
+        except FailedPreprocessingStrategy:
+            self.show_error("Невдалося виконати передобробку, спробуйте іншу!")
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)
