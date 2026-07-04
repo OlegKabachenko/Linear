@@ -47,16 +47,8 @@
 
 		StandartBox:
 		    size_hint: 1, 0.3
-		    RestrictedScrollView:
-		        id: result_sv
-			    clip_behavior: 'clip_children'
-				do_scroll_x: False
-				do_scroll_y: True
-                MDBoxLayout:
-                    SizableFabBtn:
-                        icon: "calculator"
-                        theme_bg_color: "Custom"
-                        theme_icon_color: "Custom"
-                        md_bg_color: self.theme_cls.primaryColor
-                        icon_color: self.theme_cls.surfaceColor
-                        on_release: root.get_system_roots()
+            CalculateBox:
+                id: calculate_box
+                on_calculate: root.get_system_roots()
+                on_error: root.show_error(args[1])
+

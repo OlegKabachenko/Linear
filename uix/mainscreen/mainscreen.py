@@ -7,21 +7,13 @@ import sys
 from pathlib import Path
 from kivy.lang import Builder
 
-import time
-
-from numpy.linalg import LinAlgError
-
 from kivymd.uix.screen import MDScreen
 from kivy.properties import NumericProperty
 from kivy.clock import Clock
 from kivymd.uix.boxlayout import MDBoxLayout
-from kivymd.uix.loadingindicator import MDLoadingIndicator
-from kivymd.uix.label import MDLabel
 
 from tools.solver import Solver
 from tools.system import System
-from tools.solver import MaxIterationsExceeded
-from tools.preprocessing import FailedPreprocessingStrategy
 
 from uix.controlbox import SelectorBox
 from uix.bigtouchswitch import ThemeSwitch, ParallelSwitch
@@ -31,7 +23,7 @@ from uix.systemdatabox import SystemDataBox
 from uix.customdialog import ErrorDialog
 from uix.params import ClassicMethodsParam, DotsCntParam
 from uix.sizablebtn import ExitBtn, SizableFabBtn
-
+from uix.calculatebox import CalculateBox
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
 config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
@@ -210,32 +202,9 @@ class MainScreen(MDScreen):
 
         system, extra_params = params
         method = self.get_current_method()
+        is_parallel = self.is_parallel_mode_enabled()
 
-        result = self.call_solver(system, method, **extra_params)
-
-        if result is not None:
-            x, itr, exec_time = result
-            deltas = system.verify_solution(x)
-            print(x)
-            print(deltas)
-            print(itr)
-
-    def call_solver(self, system: System, method, **kwargs):
-        try:
-            start_time = time.time()
-
-            result, itr = method(system, kwargs, self.is_parallel_mode_enabled())
-            end_time = time.time()
-
-            exec_time = end_time - start_time
-            return result, itr, exec_time
-
-        except MaxIterationsExceeded:
-            self.show_error("Перевищено максимальну кількість ітерацій, спробуйте збільшити цей параметр!")
-        except LinAlgError:
-            self.show_error("Матриця вироджена, неможливо застосувати передобробку!")
-        except FailedPreprocessingStrategy:
-            self.show_error("Невдалося виконати передобробку, спробуйте іншу!")
+        self.ids.calculate_box.calculate_roots(system, method, extra_params, is_parallel)
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)

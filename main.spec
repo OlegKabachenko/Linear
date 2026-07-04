@@ -8,6 +8,7 @@ a = Analysis(
     datas=[
         ('uix/uix_config.yaml', 'uix'),
         ('uix/bigtouchswitch/bigtouchswitch.kv', 'uix/bigtouchswitch'),
+        ('uix/calculatebox/calculatebox.kv', 'uix/calculatebox'),
         ('uix/controlbox/controlbox.kv', 'uix/controlbox'),
         ('uix/customdialog/customdialog.kv', 'uix/customdialog'),
         ('uix/mainscreen/mainscreen.kv', 'uix/mainscreen'),
