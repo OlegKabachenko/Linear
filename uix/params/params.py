@@ -269,7 +269,7 @@ class ClassicMethodsParam(BaseParamLayout):
 
         Clock.schedule_once(self._update_height, 0)
 
-    def _update_height(self):
+    def _update_height(self, dt):
         if not self.is_animated:
             total_height = sum(child.height for child in self.children)
 
