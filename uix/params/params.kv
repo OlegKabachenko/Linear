@@ -115,6 +115,11 @@
             ripple_scale: 0
             icon: "check"
             on_release: root.dispatch_apply_action()
+        SizableFabBtn:
+            id: clear
+            ripple_scale: 0
+            icon: "delete"
+            on_release: root.dispatch_clear_action()
 
 <SystemFloatParam>:
     hint: "c:"

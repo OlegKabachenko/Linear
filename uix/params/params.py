@@ -292,6 +292,7 @@ class ClassicMethodsParam(BaseParamLayout):
 
         return result
 
+
 class SizeParam(IntParam):
     forbid_negative_param = True
     hint = "Розмірність системи"
@@ -310,6 +311,7 @@ class SizeParamExtra(BaseParamLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.register_event_type("on_apply")
+        self.register_event_type("on_clear")
 
     def _on_inner_value(self, value):
         try:
@@ -321,8 +323,8 @@ class SizeParamExtra(BaseParamLayout):
         super().orientation_check()
         if self.orientation == "horizontal":
             self.spacing = "10dp"
-            self.ids.size_box.size_hint = (0.6, 1)
-            self.ids.buttons_box.size_hint = (0.4, 1)
+            self.ids.size_box.size_hint = (0.55, 1)
+            self.ids.buttons_box.size_hint = (0.45, 1)
             self.set_bottom_padding(0)
 
             for btn in self.ids.buttons_box.children:
@@ -362,6 +364,12 @@ class SizeParamExtra(BaseParamLayout):
             a.open()
 
     def on_apply(self, value):
+        pass
+
+    def dispatch_clear_action(self):
+        self.dispatch("on_clear", self.value)
+
+    def on_clear(self, value):
         pass
 
     def is_error(self):

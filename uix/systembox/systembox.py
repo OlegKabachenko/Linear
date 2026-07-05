@@ -172,6 +172,14 @@ class SystemBox(MDBoxLayout):
     def update_brace(self, *args):
         self.ids.brace.redraw()
 
+    def clear_data(self):
+        equations_box = self.ids.equations_box
+
+        for row in equations_box.children:
+            for widget in row.children:
+                if isinstance(widget, SystemFloatParam):
+                    widget.set_params(0)
+
     def change_size(self, new_n):
 
         try:
