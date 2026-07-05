@@ -76,19 +76,20 @@ class ResultBox(MDBoxLayout):
 
     def show_result(self, x, deltas, itr, exec_time):
         fnm_big = config['RES_LBL_FMN_BIG']
+        precision = config['LBL_ROUND_PRECISION']
 
         self._add_label("Знайдений розв'язок", bold=True, font_mlt_narrow=fnm_big)
 
         for i, value in enumerate(x, start=1):
-            self._add_label(f"x{i} = {value:.6f}")
+            self._add_label(f"x{i} = {value:.{precision}f}")
 
         self._add_label("Похибки отриманих розв'язків", bold=True, font_mlt_narrow=fnm_big)
 
         for i, delta in enumerate(deltas, start=1):
-            self._add_label(f"Δ{i} = {delta:.6f}")
+            self._add_label(f"Δ{i} = {delta:.{precision}f}")
 
         self._add_label(f"Кількість ітерацій: {itr}", bold=True, font_mlt_narrow=fnm_big)
-        self._add_label(f"Час виконання: {exec_time:.6f} с", bold=True, font_mlt_narrow=fnm_big)
+        self._add_label(f"Час виконання: {exec_time:.{precision}f} с", bold=True, font_mlt_narrow=fnm_big)
 
 
 class CalculateBox(MDBoxLayout):
@@ -116,8 +117,11 @@ class CalculateBox(MDBoxLayout):
         self.ids.indicator_box.opacity = 0
         self.ids.indicator_box.height = 0
 
-    def calculate_roots(self, system, method, extra_params, is_parallel):
+    def clear_output(self):
         self.ids.result_box.clear_widgets()
+
+    def calculate_roots(self, system, method, extra_params, is_parallel):
+        self.clear_output()
 
         self._show_indicator()
         Thread(

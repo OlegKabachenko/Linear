@@ -29,6 +29,13 @@ class SystemDataBox(MDBoxLayout):
     min_size = NumericProperty(None)
     max_size = NumericProperty(None)
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.register_event_type("on_system_changed")
+
+    def on_system_changed(self):
+        pass
+
     def get_system_params(self):
         extra_params_box = self.ids.extra_params_box
         extra_params = {}
@@ -49,8 +56,16 @@ class SystemDataBox(MDBoxLayout):
         except ValueError:
             return None
 
+    def change_system_size(self, n):
+        self.ids.system.change_size(n)
+        self.dispatch("on_system_changed")
+
     def set_system_size(self, size):
         self.ids.size_param.set_params(size)
+
+    def clear_system_data(self):
+        self.ids.system.clear_data()
+        self.dispatch("on_system_changed")
 
     def set_system_data(self, n, x, y):
         self.ids.system.create_system(n)

@@ -8,8 +8,8 @@
         id: size_param_box
         SizeParamExtra:
             id: size_param
-            on_apply: system.change_size(self.value)
-            on_clear: system.clear_data()
+            on_apply: root.change_system_size(self.value)
+            on_clear: root.clear_system_data()
 
             min_value: root.min_size
             max_value: root.max_size

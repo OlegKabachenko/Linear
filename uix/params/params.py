@@ -269,7 +269,7 @@ class ClassicMethodsParam(BaseParamLayout):
 
         Clock.schedule_once(self._update_height, 0)
 
-    def _update_height(self, dt):
+    def _update_height(self):
         if not self.is_animated:
             total_height = sum(child.height for child in self.children)
 
@@ -312,6 +312,7 @@ class SizeParamExtra(BaseParamLayout):
         super().__init__(**kwargs)
         self.register_event_type("on_apply")
         self.register_event_type("on_clear")
+        self._applied_value = None
 
     def _on_inner_value(self, value):
         try:
@@ -345,6 +346,7 @@ class SizeParamExtra(BaseParamLayout):
 
     def set_params(self, n):
         self.ids.size_param.set_params(n)
+        self._applied_value = n
 
     def increment(self):
         self._change_value(1)
@@ -356,7 +358,13 @@ class SizeParamExtra(BaseParamLayout):
 
     def dispatch_apply_action(self):
         if not self.ids.size_param.has_error():
+
+            if self.value == self._applied_value:
+                return
+
+            self._applied_value = self.value
             self.dispatch("on_apply", self.value)
+
         else:
             a = ErrorDialog(
                 f"Значення має бути від {self.min_value} до {self.max_value}."

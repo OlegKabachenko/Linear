@@ -46,7 +46,6 @@ class MainScreen(MDScreen):
         self.app_config = app_config
 
         self._init_config()
-        self._init_constants()
         self._init_examples()
         self._init_methods()
         self._init_widgets()
@@ -67,10 +66,6 @@ class MainScreen(MDScreen):
         self.max_max_itr = self.app_config["MAX_MAX_ITR"]
         self.min_eps = self.app_config["MIN_EPS"]
         self.max_eps = self.app_config["MAX_EPS"]
-
-    def _init_constants(self):
-        self.ROUND_PRECISION = config['ROUND_PRECISION']
-        self.EXEC_TIME_PRECISION = config['EXEC_TIME_PRECISION']
 
     def _init_examples(self):
         self.primary_validate_examples()
@@ -153,12 +148,14 @@ class MainScreen(MDScreen):
     def handle_example_select(self, s_id, prev_id):
         if s_id != prev_id:
             self.set_input_values(s_id)
+            self.ids.calculate_box.clear_output()
 
     def handle_method_select(self, s_id, prev_id):
         if s_id != prev_id:
             self.manage_extra_method_params(s_id)
             self.manage_parallel_switch(s_id)
             self.current_method_id = s_id
+            self.ids.calculate_box.clear_output()
 
     def manage_extra_method_params(self, i):
         self.ids.systemdatabox.add_extra_params(self.extra_widgets[i], self.ANIMATION_DURATION)
