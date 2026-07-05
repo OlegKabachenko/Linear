@@ -105,6 +105,13 @@ class SystemRow(MDBoxLayout):
 
 
 class SystemBox(MDBoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.register_event_type("on_data_change")
+
+    def on_data_change(self):
+        pass
+
     def delete_system(self):
         equations_box = self.ids.equations_box
 
@@ -123,6 +130,9 @@ class SystemBox(MDBoxLayout):
     def create_cell(self, row, i, n, is_x: bool, index=None):
         float_param = SystemFloatParam()
         float_param.set_params(0)
+
+        float_param.bind(value=lambda *_: self.dispatch("on_data_change"))
+
         if is_x:
             self.add_element(row,float_param,index)
 

@@ -33,6 +33,7 @@
 
                 SystemBox:
                     id: system
+                    on_data_change: root.dispatch("on_system_changed")
 
                 Widget:
                     size_hint_x: 1
