@@ -41,8 +41,6 @@ class SystemBrace(Widget):
         self.app.theme_cls.bind(theme_style=self.redraw)
 
     def get_brace_color(self):
-
-
         if self.app.theme_cls.theme_style == "Dark":
             return (1, 1, 1, 1)
         else:

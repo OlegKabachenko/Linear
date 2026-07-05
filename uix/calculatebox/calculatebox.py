@@ -4,6 +4,7 @@ from numpy.linalg import LinAlgError
 
 import time
 
+import yaml
 from pathlib import Path
 import os
 import sys
@@ -13,13 +14,16 @@ from kivy.lang import Builder
 from threading import Thread
 from kivy.clock import Clock
 from kivy.metrics import dp
+from kivy.graphics import Color, Rectangle
 
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.loadingindicator import MDLoadingIndicator
 from kivymd.uix.label import MDLabel
+from kivy.properties import NumericProperty
 
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.sizablebtn import SizableFabBtn
+from uix.mixins import SizableFontMixin
 
 from tools.solver import MaxIterationsExceeded
 from tools.preprocessing import FailedPreprocessingStrategy
@@ -27,11 +31,64 @@ from tools.system import System
 
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
+config_path = os.path.join(base_path, 'uix', 'uix_config.yaml')
 kv_path = os.path.join(base_path, "uix", "calculatebox", "calculatebox.kv")
 
-
-with open(kv_path, encoding="utf-8") as kv_file:
+with open(config_path, 'r') as file, \
+     open(kv_path, encoding="utf-8") as kv_file:
+    config = yaml.safe_load(file)
     Builder.load_string(kv_file.read())
+
+
+class ResultLabel(MDLabel, SizableFontMixin):
+    font_mlt_narrow = NumericProperty(config['RES_LBL_FMN'])
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.bind(
+            size=self._update_font,
+            text=self._update_font
+        )
+
+    def _update_font(self, *args):
+        self.font_size = self.calculate_font(
+            self.text,
+            font_mlt_narrow=self.font_mlt_narrow,
+
+            max_font=config['RES_LBL_MAX_FONT'],
+            min_font=config['RES_LBL_MIN_FONT']
+        )
+
+
+class ResultBox(MDBoxLayout):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    def _add_label(self, text, bold=False, font_mlt_narrow=config['RES_LBL_FMN']):
+        self.add_widget(
+            ResultLabel(
+                text=text,
+                bold=bold,
+                font_mlt_narrow=font_mlt_narrow,
+            )
+        )
+
+    def show_result(self, x, deltas, itr, exec_time):
+        fnm_big = config['RES_LBL_FMN_BIG']
+
+        self._add_label("Знайдений розв'язок", bold=True, font_mlt_narrow=fnm_big)
+
+        for i, value in enumerate(x, start=1):
+            self._add_label(f"x{i} = {value:.6f}")
+
+        self._add_label("Похибки отриманих розв'язків", bold=True, font_mlt_narrow=fnm_big)
+
+        for i, delta in enumerate(deltas, start=1):
+            self._add_label(f"Δ{i} = {delta:.6f}")
+
+        self._add_label(f"Кількість ітерацій: {itr}", bold=True, font_mlt_narrow=fnm_big)
+        self._add_label(f"Час виконання: {exec_time:.6f} с", bold=True, font_mlt_narrow=fnm_big)
 
 
 class CalculateBox(MDBoxLayout):
@@ -60,6 +117,8 @@ class CalculateBox(MDBoxLayout):
         self.ids.indicator_box.height = 0
 
     def calculate_roots(self, system, method, extra_params, is_parallel):
+        self.ids.result_box.clear_widgets()
+
         self._show_indicator()
         Thread(
             target=self._solve_worker,
@@ -109,9 +168,9 @@ class CalculateBox(MDBoxLayout):
         x, itr, exec_time = result
         deltas = system.verify_solution(x)
 
+        self.ids.result_box.show_result(x, deltas, itr, exec_time)
 
     def call_solver(self, system: System, method, is_parallel, **kwargs):
-
         start_time = time.time()
 
         result, itr = method(system, kwargs, is_parallel)
@@ -119,3 +178,4 @@ class CalculateBox(MDBoxLayout):
 
         exec_time = end_time - start_time
         return result, itr, exec_time
+

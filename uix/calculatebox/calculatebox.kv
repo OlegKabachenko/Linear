@@ -1,10 +1,50 @@
+<ResultLabel>:
+    adaptive_height: True
+    halign: "center"
+    text_size: None, None
+
+    canvas.before:
+        Color:
+            rgba: self.theme_cls.surfaceContainerLowColor
+
+        RoundedRectangle:
+            pos: self.pos
+            size: self.size
+            radius: [8]
+
+
+<ResultBox>:
+    orientation: "vertical"
+    adaptive_height: True
+    spacing: "4dp"
+
+
 <CalculateBox>:
     id: root_box
-    size_hint: 1,1
-    padding: [30,10,30,0]
+    orientation: "vertical"
+    size_hint: 1, 1
+    padding: [30, 10, 30, 0]
+    spacing: "20dp"
 
-	RestrictedScrollView:
-        clip_behavior: 'clip_children'
+    MDBoxLayout:
+        size_hint_y: None
+        height: "50dp"
+        SizableFabBtn:
+            icon: "calculator"
+
+
+
+            theme_shadow_color: "Custom"
+            shadow_color: 0, 0, 0, 0
+            theme_bg_color: "Custom"
+            theme_icon_color: "Custom"
+            md_bg_color: self.theme_cls.primaryColor
+            icon_color: self.theme_cls.surfaceColor
+
+            on_release: root_box.on_button_press()
+
+    RestrictedScrollView:
+        clip_behavior: "clip_children"
         do_scroll_x: False
         do_scroll_y: True
 
@@ -12,30 +52,20 @@
             orientation: "vertical"
             adaptive_height: True
             spacing: "10dp"
-            MDBoxLayout:
-                size_hint: 1, None
-                height: "50dp"
-                SizableFabBtn:
-                    size_hint: 1, 1
-                    icon: "calculator"
-
-                    theme_shadow_color: "Custom"
-                    shadow_color: [0,0,0,0]
-                    theme_bg_color: "Custom"
-                    theme_icon_color: "Custom"
-                    md_bg_color: self.theme_cls.primaryColor
-                    icon_color: self.theme_cls.surfaceColor
-
-                    on_release: root_box.on_button_press()
 
             MDBoxLayout:
                 id: indicator_box
-                size_hint: 1, None
+                size_hint_y: None
                 height: 0
 
                 Widget:
+
                 MDLoadingIndicator:
                     id: indicator
                     shape_size: max(indicator_box.height, dp(1))
                     shape_sequence: ["cookie12Sided", "pentagon"]
+
                 Widget:
+
+            ResultBox:
+                id: result_box
