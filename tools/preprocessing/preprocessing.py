@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.optimize import linear_sum_assignment
 
 
 class FailedPreprocessingStrategy(Exception):
@@ -24,27 +25,29 @@ class PreprocessingStrategy:
     def to_dominant(self, a, b):
         n = len(a)
 
+        row_sums = np.sum(np.abs(a), axis=1)
+        score = np.empty((n, n))
+
+        for row in range(n):
+            for col in range(n):
+
+                diag = abs(a[row, col])
+
+                if diag == 0:
+                    score[row, col] = -1e9
+                else:
+                    off = row_sums[row] - diag
+                    score[row, col] = diag - off
+
+        rows, cols = linear_sum_assignment(score, maximize=True)
+
         new_a = np.zeros_like(a)
         new_b = np.zeros_like(b)
 
-        row_sums = np.sum(np.abs(a), axis=1)
-        used = set()
-
-        for i in range(n):
-            values = np.zeros(n)
-
-            for j in range(n):
-                if j in used:
-                    values[j] = -np.inf
-                else:
-                    diag_val = np.abs(a[j, i])
-                    values[j] = diag_val - (row_sums[j] - diag_val)
-
-            max_index = np.argmax(values)
-
-            new_a[i] = a[max_index]
-            new_b[i] = b[max_index]
-            used.add(max_index)
+        for row, col in zip(rows, cols):
+            new_a[col] = a[row]
+            new_b[col] = b[row]
+        print (new_a)
         return new_a, new_b
 
     def to_canonical_iterative_form(self, a, b):
