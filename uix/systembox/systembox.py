@@ -7,8 +7,9 @@ from kivy.lang import Builder
 from kivymd.app import MDApp
 from kivymd.uix.boxlayout import MDBoxLayout
 from kivy.clock import Clock
-from kivy.metrics import sp
+from kivy.metrics import sp, dp
 from kivymd.uix.label import MDLabel
+from kivymd.uix.textfield import MDTextField
 from kivy.properties import NumericProperty
 from kivy.uix.widget import Widget
 from kivy.graphics import Line, Color, Rectangle, Bezier
@@ -16,10 +17,8 @@ from kivy.graphics import Line, Color, Rectangle, Bezier
 import numpy as np
 
 import time
-import gc
 
 from uix.restrictedscrollview import RestrictedScrollView
-from uix.params import SystemFloatParam
 from tools.system import System
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
@@ -50,7 +49,7 @@ class SystemBrace(Widget):
         self.canvas.clear()
 
         center_shift_x = 20
-        top_bottom_margin = 10
+        top_bottom_margin = 2
 
         control_point_y_offset = 3
 
@@ -100,6 +99,10 @@ class SystemLabel(MDLabel):
         self.font = sp(config['SYSTEM_FONT'])
 
 
+class SystemCoef(MDTextField):
+    pass
+
+
 class SystemRow(MDBoxLayout):
     pass
 
@@ -119,7 +122,6 @@ class SystemBox(MDBoxLayout):
             row.clear_widgets()
 
         equations_box.clear_widgets()
-        Clock.schedule_once(lambda dt: gc.collect(), 0)
 
     def add_element(self, row, widget, index=None):
         if index is None:
@@ -128,10 +130,9 @@ class SystemBox(MDBoxLayout):
             row.add_widget(widget, index=index)
 
     def create_cell(self, row, i, n, is_x: bool, index=None):
-        float_param = SystemFloatParam()
-        float_param.set_params(0)
-
-        float_param.bind(value=lambda *_: self.dispatch("on_data_change"))
+        float_param = SystemCoef()
+        float_param.bind(text=lambda *_: self.dispatch("on_data_change"))
+        float_param.text = "0"
 
         if is_x:
             self.add_element(row,float_param,index)
@@ -256,12 +257,12 @@ class SystemBox(MDBoxLayout):
         y_arr = np.zeros(n, dtype=float)
 
         for i, row in enumerate(rows):
-            float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
+            widgets = [w for w in row.children if isinstance(w, SystemCoef)][::-1]
 
-            for j in range(len(float_widgets) - 1):
-                x_arr[i, j] = float_widgets[j].get_params()
+            for j in range(len(widgets) - 1):
+                x_arr[i, j] = float(widgets[j].text)
 
-            y_arr[i] = float_widgets[-1].get_params()
+            y_arr[i] = float(widgets[-1].text)
 
         return System(n, x_arr, y_arr)
 
@@ -277,13 +278,13 @@ class SystemBox(MDBoxLayout):
         for i in range(n):
             row = rows[i]
 
-            float_widgets = [w for w in row.children if isinstance(w, SystemFloatParam)][::-1]
+            widgets = [w for w in row.children if isinstance(w, SystemCoef)][::-1]
 
-            m = min(len(float_widgets) - 1, x_arr.shape[1])
+            m = min(len(widgets) - 1, x_arr.shape[1])
 
             for j in range(m):
-                float_widgets[j].set_params(x_arr[i, j])
+                widgets[j].text = str(x_arr[i, j])
+            widgets[-1].text = str(y_arr[i])
 
-            float_widgets[-1].set_params(y_arr[i])
 
 

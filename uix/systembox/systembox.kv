@@ -11,6 +11,18 @@
     size_hint_x: None
     width: dp(20)
 
+<SystemCoef>:
+    size_hint_x: None
+    size_hint_y: None
+    height: "30dp"
+    width: "85dp"
+    required: True
+    input_filter: 'float'
+    theme_font_size: "Custom"
+    font_size: self.height * 0.8
+    halign: "center"
+
+
 <SystemRow>:
     spacing: 5
 
@@ -34,7 +46,8 @@
 
     MDBoxLayout:
         id: equations_box
-        spacing: 0
+        spacing: 10
+        padding: 10
         orientation: "vertical"
         size_hint_x: None
         width: self.minimum_width

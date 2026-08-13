@@ -119,7 +119,6 @@ class CalculateBox(MDBoxLayout):
 
     def clear_output(self):
         if self.ids.result_box.children:
-            print("aa")
             self.ids.result_box.clear_widgets()
 
     def calculate_roots(self, system, method, extra_params, is_parallel):

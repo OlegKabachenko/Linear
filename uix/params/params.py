@@ -186,20 +186,6 @@ class FloatParam(StandartParam):
         return float(self.get_param_text(self.ids.input))
 
 
-class SystemFloatParam(FloatParam):
-    def on_kv_post(self, base_widget):
-        field = self.ids.input
-
-        field.can_be_zero = True
-        field.ids.hint_text.text = ""
-
-        self.size_hint_x = None
-        self.width = dp(config['INPUT_FIELD_WIDTH'])
-        field.width = self.width
-
-        field.height = dp(config['INPUT_FIELD_HEIGHT'])
-
-
 class PreconditionParams(BaseParamLayout):
     min_scale = NumericProperty(None)
     max_scale = NumericProperty(None)

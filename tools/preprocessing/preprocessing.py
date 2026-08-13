@@ -47,7 +47,7 @@ class PreprocessingStrategy:
         for row, col in zip(rows, cols):
             new_a[col] = a[row]
             new_b[col] = b[row]
-        print (new_a)
+
         return new_a, new_b
 
     def to_canonical_iterative_form(self, a, b):
