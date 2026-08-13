@@ -1,4 +1,4 @@
-__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra", "SystemFloatParam")
+__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra")
 
 import yaml
 import os

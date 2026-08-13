@@ -245,7 +245,6 @@ class SystemBox(MDBoxLayout):
                 row.clear_widgets(children=removed_cells)
                 self.change_last_x_lbl_in_row(row, tail_widget_cnt, new_n - 1, False)
 
-        Clock.schedule_once(lambda dt: gc.collect(), 0)
 
     def get_data(self):
         equations_box = self.ids.equations_box
