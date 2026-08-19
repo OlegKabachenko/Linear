@@ -39,6 +39,27 @@
 		MDTextFieldHintText:
 			text: param_root.hint
 
+<PreconditionParams>:
+    adaptive_height: True
+    orientation: "vertical"
+    MDBoxLayout:
+	    size_hint_y: None
+	    height: 70
+        padding: (30, 10, 30, 0)
+
+        SelectorBox:
+            id: precondition_mtd
+            size_hint: 1,1
+            btn_color_is_custom: True
+            btn_custom_color: [0.318, 0.569, 0.792, 1]
+
+    IntParam:
+        id: scale
+        forbid_negative_param: True
+        hint: "Множник матриць"
+        min_value: root.min_scale
+        max_value: root.max_scale
+
 <ClassicMethodsParam>:
     orientation: "vertical"
     padding: (0, 10, 0, 0)
@@ -60,22 +81,8 @@
             min_value: root.min_itr
             max_value: root.max_itr
 
-    MDBoxLayout:
-	    size_hint_y: None
-	    height: 70
-        padding: (30, 10, 30, 0)
-        SelectorBox:
-            id: precondition_mtd
-            size_hint: 1,1
-            btn_color_is_custom: True
-            btn_custom_color: [0.318, 0.569, 0.792, 1]
-
-    IntParam:
-        id: scale
-        forbid_negative_param: True
-        hint: "Множник матриць"
-        min_value: root.min_scale
-        max_value: root.max_scale
+    PreconditionParams:
+        id: precond_param
 
     MDWidget:
         id: dummy

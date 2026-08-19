@@ -1,4 +1,5 @@
-__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam", "SizeParam", "DotsCntParam", "SizeParamExtra")
+__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam",
+           "SizeParam", "DotsCntParam", "SizeParamExtra, PreconditionParams")
 
 import yaml
 import os
@@ -186,38 +187,26 @@ class FloatParam(StandartParam):
         return float(self.get_param_text(self.ids.input))
 
 
-class PreconditionParams(BaseParamLayout):
+class PreconditionParams(MDBoxLayout):
     min_scale = NumericProperty(None)
     max_scale = NumericProperty(None)
-    min_itr = NumericProperty(None)
-    max_itr = NumericProperty(None)
-
-    def set_params(self, scale, limit):
-        self.ids.scale.text = scale
-        self.ids.limit.text = limit
-
-    def get_params(self, **kwargs):
-        result = {
-            "scale": self.ids.scale.get_params(),
-            "limit": self.ids.limit.get_params()
-        }
-        return result
-
-
-class ClassicMethodsParam(BaseParamLayout):
-    min_scale = NumericProperty(None)
-    max_scale = NumericProperty(None)
-    min_itr = NumericProperty(None)
-    max_itr = NumericProperty(None)
-    min_eps = NumericProperty(None)
-    max_eps = NumericProperty(None)
-
     current_p_method_id = NumericProperty(None)
     default_p_method_id = config['DEFAULT_P_MTD_ID']
 
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
+    def on_kv_post(self, base_widget):
         self._init_selector()
+
+    def handle_p_method_select(self, s_id, prev_id):
+        if s_id == prev_id:
+            return
+
+        strategy = registry.get_by_id(s_id)
+
+        self.current_p_method_id = s_id
+
+        scale_param = self.ids.scale
+
+        scale_param.opacity = 1 if strategy.key == "prec" else 0
 
     def _init_selector(self):
         selector = self.ids.precondition_mtd
@@ -231,17 +220,30 @@ class ClassicMethodsParam(BaseParamLayout):
 
         self.handle_p_method_select(self.default_p_method_id, -9)
 
-    def handle_p_method_select(self, s_id, prev_id):
-        if s_id == prev_id:
-            return
+    def get_params(self):
+        strategy = registry.get_by_id(self.current_p_method_id)
+        key = strategy.key
 
-        strategy = registry.get_by_id(s_id)
+        result = {"p_type": key}
 
-        self.current_p_method_id = s_id
+        if key == "prec":
+            result["scale"] = self.ids.scale.get_params()
 
-        scale_param = self.ids.scale
+        return result
 
-        scale_param.opacity = 1 if strategy.key == "prec" else 0
+
+class ClassicMethodsParam(BaseParamLayout):
+    min_scale = NumericProperty(None)
+    max_scale = NumericProperty(None)
+    min_itr = NumericProperty(None)
+    max_itr = NumericProperty(None)
+    min_eps = NumericProperty(None)
+    max_eps = NumericProperty(None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.ids.precond_param.min_scale = self.min_scale
+        self.ids.precond_param.max_scale = self.max_scale
 
     def orientation_check(self):
         screen_width = Window.width
@@ -266,15 +268,10 @@ class ClassicMethodsParam(BaseParamLayout):
             self.height = total_height
 
     def get_params(self, **kwargs):
-        strategy = registry.get_by_id(self.current_p_method_id)
-        key = strategy.key
+        result = self.ids.precond_param.get_params()
 
-        result = {"limit": self.ids.limit.get_params(),
-                  "eps": self.ids.eps.get_params(),
-                  "p_type": key}
-
-        if key == "prec":
-            result["scale"] = self.ids.scale.get_params()
+        result["limit"] = self.ids.limit.get_params()
+        result["eps"] = self.ids.eps.get_params()
 
         return result
 

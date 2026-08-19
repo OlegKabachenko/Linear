@@ -6,6 +6,7 @@ from .params import ClassicMethodsParam
 from .params import SizeParam
 from .params import DotsCntParam
 from .params import SizeParamExtra
+from .params import PreconditionParams
 
 
 
