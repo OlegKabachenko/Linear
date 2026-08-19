@@ -200,8 +200,9 @@ class MainScreen(MDScreen):
         system, extra_params = params
         method = self.get_current_method()
         is_parallel = self.is_parallel_mode_enabled()
+        extra_params["is_parallel"] = is_parallel
 
-        self.ids.calculate_box.calculate_roots(system, method, extra_params, is_parallel)
+        self.ids.calculate_box.calculate_roots(system, method, extra_params)
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)

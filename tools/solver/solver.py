@@ -18,6 +18,12 @@ class MaxIterationsExceeded(Exception):
 class Solver():
     def __init__(self):
         self.METHODS: dict[str, dict[str, object]] = {
+            "Точний метод": {
+                "function": self.exact_method,
+                "extra_widget": None,
+                "can_be_parallel": False
+            },
+
             "Метод Якобі": {
                 "function": self.jacobi_method,
                 "extra_widget": "classic_methods_param",
@@ -76,11 +82,19 @@ class Solver():
             for i, value in chunk:
                 x_new[i] = value
 
-    def jacobi_method(self, system: System, params: dict[str, Any], parallel: bool = False):
+    def exact_method(self, system, params: dict[str, Any]):
+        a = system.get_x()
+        b = system.get_y()
+
+        x = np.linalg.inv(a) @ b
+        return x, None
+
+    def jacobi_method(self, system: System, params: dict[str, Any]):
         a, b = self._apply_preprocessing(system, params)
 
         eps = params.get("eps", 0.01)
         limit = params.get("limit", 15)
+        parallel = params.get("is_parallel", False)
 
         n = system.get_n()
         x = np.copy(b)
@@ -114,7 +128,7 @@ class Solver():
 
         raise MaxIterationsExceeded()
 
-    def seidel_method(self, system: System, params: dict[str, Any], parallel: bool = False):
+    def seidel_method(self, system: System, params: dict[str, Any]):
         a, b = self._apply_preprocessing(system, params)
 
         eps = params.get("eps", 0.01)
@@ -139,5 +153,5 @@ class Solver():
 
         raise MaxIterationsExceeded()
 
-    def monte_carlo_method(self, system: System, params: dict[str, Any], parallel: bool = False):
+    def monte_carlo_method(self, system: System, params: dict[str, Any]):
         pass

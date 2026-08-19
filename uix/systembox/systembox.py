@@ -188,8 +188,8 @@ class SystemBox(MDBoxLayout):
 
         for row in equations_box.children:
             for widget in row.children:
-                if isinstance(widget, SystemFloatParam):
-                    widget.set_params(0)
+                if isinstance(widget, SystemCoef):
+                    widget.text = "0"
 
     def change_size(self, new_n):
 
@@ -244,7 +244,6 @@ class SystemBox(MDBoxLayout):
                 removed_cells = row.children[tail_widget_cnt:tail_widget_cnt + count]
                 row.clear_widgets(children=removed_cells)
                 self.change_last_x_lbl_in_row(row, tail_widget_cnt, new_n - 1, False)
-
 
     def get_data(self):
         equations_box = self.ids.equations_box

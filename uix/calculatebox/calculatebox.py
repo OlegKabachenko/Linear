@@ -88,7 +88,9 @@ class ResultBox(MDBoxLayout):
         for i, delta in enumerate(deltas, start=1):
             self._add_label(f"Δ{i} = {delta:.{precision}f}")
 
-        self._add_label(f"Кількість ітерацій: {itr}", bold=True, font_mlt_narrow=fnm_big)
+        if itr is not None:
+            self._add_label(f"Кількість ітерацій: {itr}", bold=True, font_mlt_narrow=fnm_big)
+
         self._add_label(f"Час виконання: {exec_time:.{precision}f} с", bold=True, font_mlt_narrow=fnm_big)
 
 
@@ -121,19 +123,19 @@ class CalculateBox(MDBoxLayout):
         if self.ids.result_box.children:
             self.ids.result_box.clear_widgets()
 
-    def calculate_roots(self, system, method, extra_params, is_parallel):
+    def calculate_roots(self, system, method, extra_params):
         self.clear_output()
 
         self._show_indicator()
         Thread(
             target=self._solve_worker,
-            args=(system, method, extra_params, is_parallel),
+            args=(system, method, extra_params),
             daemon=True
         ).start()
 
-    def _solve_worker(self, system, method, extra_params, is_parallel):
+    def _solve_worker(self, system, method, extra_params):
         try:
-            result = self.call_solver(system, method, is_parallel, **extra_params)
+            result = self.call_solver(system, method, **extra_params)
 
             Clock.schedule_once(
                 lambda dt: self._on_solver_finished(system, result)
@@ -175,10 +177,10 @@ class CalculateBox(MDBoxLayout):
 
         self.ids.result_box.show_result(x, deltas, itr, exec_time)
 
-    def call_solver(self, system: System, method, is_parallel, **kwargs):
+    def call_solver(self, system: System, method, **kwargs):
         start_time = time.time()
 
-        result, itr = method(system, kwargs, is_parallel)
+        result, itr = method(system, kwargs)
         end_time = time.time()
 
         exec_time = end_time - start_time
