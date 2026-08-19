@@ -74,7 +74,7 @@ class ResultBox(MDBoxLayout):
             )
         )
 
-    def show_result(self, x, deltas, itr, exec_time):
+    def show_result(self, x, extra_info):
         fnm_big = config['RES_LBL_FMN_BIG']
         precision = config['LBL_ROUND_PRECISION']
 
@@ -83,15 +83,26 @@ class ResultBox(MDBoxLayout):
         for i, value in enumerate(x, start=1):
             self._add_label(f"x{i} = {value:.{precision}f}")
 
-        self._add_label("Похибки отриманих розв'язків", bold=True, font_mlt_narrow=fnm_big)
+        deltas = extra_info.get("deltas")
+        if deltas is not None:
+            self._add_label(
+                "Похибки отриманих розв'язків", bold=True, font_mlt_narrow=fnm_big)
 
-        for i, delta in enumerate(deltas, start=1):
-            self._add_label(f"Δ{i} = {delta:.{precision}f}")
+            for i, delta in enumerate(deltas, start=1):
+                self._add_label(f"Δ{i} = {delta:.{precision}f}")
 
-        if itr is not None:
-            self._add_label(f"Кількість ітерацій: {itr}", bold=True, font_mlt_narrow=fnm_big)
+        norms = extra_info.get("norms")
+        if norms is not None:
+            for name, value in norms.items():
+                self._add_label(f"{name} = {value:.{precision}f}")
 
-        self._add_label(f"Час виконання: {exec_time:.{precision}f} с", bold=True, font_mlt_narrow=fnm_big)
+        iterations = extra_info.get("iterations")
+        if iterations is not None:
+            self._add_label( f"Кількість ітерацій: {iterations}", bold=True, font_mlt_narrow=fnm_big)
+
+        exec_time = extra_info.get("exec_time")
+        if exec_time is not None:
+            self._add_label(f"Час виконання: {exec_time:.{precision}f} с", bold=True, font_mlt_narrow=fnm_big)
 
 
 class CalculateBox(MDBoxLayout):
@@ -172,17 +183,26 @@ class CalculateBox(MDBoxLayout):
         if result is None:
             return
 
-        x, itr, exec_time = result
+        x, exec_time, extra_info = result
         deltas = system.verify_solution(x)
+        extra_info["deltas"] = deltas
+        extra_info["exec_time"] = exec_time
 
-        self.ids.result_box.show_result(x, deltas, itr, exec_time)
+        self.ids.result_box.show_result(x, extra_info)
 
     def call_solver(self, system: System, method, **kwargs):
         start_time = time.time()
 
-        result, itr = method(system, kwargs)
+        method_result = method(system, kwargs)
+
+        if isinstance(method_result, tuple) and len(method_result) == 2:
+            result, extra_info = method_result
+        else:
+            result = method_result
+            extra_info = {}
+
         end_time = time.time()
 
         exec_time = end_time - start_time
-        return result, itr, exec_time
+        return result, exec_time, extra_info
 

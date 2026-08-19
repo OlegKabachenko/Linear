@@ -82,12 +82,21 @@ class Solver():
             for i, value in chunk:
                 x_new[i] = value
 
+    def get_norms(self, a):
+        m = np.max(np.sum(np.abs(a), axis=1))
+        n = np.max(np.sum(np.abs(a), axis=0))
+
+        return {
+            "m": m,
+            "n": n
+        }
+
     def exact_method(self, system, params: dict[str, Any]):
         a = system.get_x()
         b = system.get_y()
 
         x = np.linalg.inv(a) @ b
-        return x, None
+        return x
 
     def jacobi_method(self, system: System, params: dict[str, Any]):
         a, b = self._apply_preprocessing(system, params)
@@ -118,7 +127,13 @@ class Solver():
                 error = np.max(np.abs(x_new - x))
 
                 if error < eps:
-                    return x_new, iteration + 1
+                    if error < eps:
+                        extra_info = {
+                            "iterations": iteration + 1,
+                            "norms": self.get_norms(a)
+                        }
+
+                        return x, extra_info
 
                 x[:] = x_new
         finally:
@@ -149,7 +164,12 @@ class Solver():
             error = np.max(np.abs(x - x_old))
 
             if error < eps:
-                return x, iteration + 1
+                extra_info = {
+                    "iterations": iteration + 1,
+                    "norms": self.get_norms(a)
+                }
+
+                return x, extra_info
 
         raise MaxIterationsExceeded()
 
