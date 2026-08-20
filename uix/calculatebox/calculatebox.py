@@ -1,5 +1,6 @@
 __all__ = "CalculateBox"
 
+import numpy as np
 from numpy.linalg import LinAlgError
 
 import time
@@ -28,6 +29,7 @@ from uix.mixins import SizableFontMixin
 from tools.solver import MaxIterationsExceeded
 from tools.preprocessing import FailedPreprocessingStrategy
 from tools.system import System
+from tools.solverresultinfo import SolverResultInfo
 
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
@@ -38,7 +40,6 @@ with open(config_path, 'r') as file, \
      open(kv_path, encoding="utf-8") as kv_file:
     config = yaml.safe_load(file)
     Builder.load_string(kv_file.read())
-
 
 class ResultLabel(MDLabel, SizableFontMixin):
     font_mlt_narrow = NumericProperty(config['RES_LBL_FMN'])
@@ -74,35 +75,54 @@ class ResultBox(MDBoxLayout):
             )
         )
 
-    def show_result(self, x, extra_info):
+    def show_result(self, extra_info: SolverResultInfo):
         fnm_big = config['RES_LBL_FMN_BIG']
         precision = config['LBL_ROUND_PRECISION']
 
-        self._add_label("Знайдений розв'язок", bold=True, font_mlt_narrow=fnm_big)
+        for info in sorted(
+                extra_info.values(),
+                key=lambda entry: entry["order"]
+        ):
+            value = info["value"]
+            label = info["label"]
+            bold = info["bold"]
+            item_label = info["item_label"]
+            suffix = info["value_suffix"]
+            value_format = info["value_format"]
 
-        for i, value in enumerate(x, start=1):
-            self._add_label(f"x{i} = {value:.{precision}f}")
+            font_mlt_narrow = (
+                fnm_big if bold else config['RES_LBL_FMN']
+            )
 
-        deltas = extra_info.get("deltas")
-        if deltas is not None:
-            self._add_label(
-                "Похибки отриманих розв'язків", bold=True, font_mlt_narrow=fnm_big)
+            if np.isscalar(value):
+                if value_format == "int":
+                    text = f"{label}: {value}{suffix}"
+                else:
+                    text = f"{label}: {value:.{precision}f}{suffix}"
 
-            for i, delta in enumerate(deltas, start=1):
-                self._add_label(f"Δ{i} = {delta:.{precision}f}")
+                self._add_label(
+                    text,
+                    bold=bold,
+                    font_mlt_narrow=font_mlt_narrow
+                )
 
-        norms = extra_info.get("norms")
-        if norms is not None:
-            for name, value in norms.items():
-                self._add_label(f"{name} = {value:.{precision}f}")
+            else:
+                self._add_label(
+                    label,
+                    bold=bold,
+                    font_mlt_narrow=font_mlt_narrow
+                )
 
-        iterations = extra_info.get("iterations")
-        if iterations is not None:
-            self._add_label( f"Кількість ітерацій: {iterations}", bold=True, font_mlt_narrow=fnm_big)
+                for i, element in enumerate(value, start=1):
+                    if value_format == "int":
+                        text = f"{element}{suffix}"
+                    else:
+                        text = f"{element:.{precision}f}{suffix}"
 
-        exec_time = extra_info.get("exec_time")
-        if exec_time is not None:
-            self._add_label(f"Час виконання: {exec_time:.{precision}f} с", bold=True, font_mlt_narrow=fnm_big)
+                    if item_label is not None:
+                        text = f"{item_label}{i} = {text}"
+
+                    self._add_label(text)
 
 
 class CalculateBox(MDBoxLayout):
@@ -179,30 +199,25 @@ class CalculateBox(MDBoxLayout):
         finally:
             Clock.schedule_once(lambda dt: self._hide_indicator())
 
-    def _on_solver_finished(self, system, result):
+    def _on_solver_finished(self, system: System, result):
         if result is None:
             return
 
-        x, exec_time, extra_info = result
-        deltas = system.verify_solution(x)
-        extra_info["deltas"] = deltas
-        extra_info["exec_time"] = exec_time
+        resultinfo, exec_time, = result
+        x = resultinfo["solution"]["value"]
 
-        self.ids.result_box.show_result(x, extra_info)
+        resultinfo.add_deltas(system.verify_solution(x))
+        resultinfo.add_exec_time(exec_time)
+
+        self.ids.result_box.show_result(resultinfo)
 
     def call_solver(self, system: System, method, **kwargs):
         start_time = time.time()
 
-        method_result = method(system, kwargs)
-
-        if isinstance(method_result, tuple) and len(method_result) == 2:
-            result, extra_info = method_result
-        else:
-            result = method_result
-            extra_info = {}
+        result = method(system, kwargs)
 
         end_time = time.time()
 
         exec_time = end_time - start_time
-        return result, exec_time, extra_info
+        return result, exec_time
 

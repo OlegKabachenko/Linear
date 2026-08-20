@@ -5,10 +5,10 @@ from typing import Any
 import numpy as np
 from multiprocessing import Pool
 
-
 from tools.system import System
 from tools.preprocessing import registry
 from tools.parallelexecutionpolicy import ParallelExecutionPolicy
+from tools.solverresultinfo import SolverResultInfo
 
 
 class MaxIterationsExceeded(Exception):
@@ -86,17 +86,38 @@ class Solver():
         m = np.max(np.sum(np.abs(a), axis=1))
         n = np.max(np.sum(np.abs(a), axis=0))
 
-        return {
-            "m": m,
-            "n": n
-        }
+        return m, n
+
+    def get_spectral_radius(self, a):
+        eigenvalues = np.linalg.eigvals(a)
+        spectral_radius = max(abs(eigenvalues))
+        return spectral_radius
+
+    def _build_result_info(self, x, iteration=None, a=None):
+        resultinfo = SolverResultInfo()
+
+        resultinfo.add_solution(x)
+
+        if iteration is not None:
+            resultinfo.add_iterations(iteration)
+
+        if a is not None:
+            resultinfo.add_spectral_radius(
+                self.get_spectral_radius(a)
+            )
+
+            m, n = self.get_norms(a)
+            resultinfo.add_norms(m, n)
+
+        return resultinfo
 
     def exact_method(self, system, params: dict[str, Any]):
         a = system.get_x()
         b = system.get_y()
 
         x = np.linalg.inv(a) @ b
-        return x
+
+        return self._build_result_info(x)
 
     def jacobi_method(self, system: System, params: dict[str, Any]):
         a, b = self._apply_preprocessing(system, params)
@@ -127,13 +148,11 @@ class Solver():
                 error = np.max(np.abs(x_new - x))
 
                 if error < eps:
-                    if error < eps:
-                        extra_info = {
-                            "iterations": iteration + 1,
-                            "norms": self.get_norms(a)
-                        }
-
-                        return x, extra_info
+                    return self._build_result_info(
+                        x_new,
+                        iteration=iteration+1,
+                        a=a
+                    )
 
                 x[:] = x_new
         finally:
@@ -164,12 +183,11 @@ class Solver():
             error = np.max(np.abs(x - x_old))
 
             if error < eps:
-                extra_info = {
-                    "iterations": iteration + 1,
-                    "norms": self.get_norms(a)
-                }
-
-                return x, extra_info
+                return self._build_result_info(
+                    x,
+                    iteration=iteration + 1,
+                    a=a
+                )
 
         raise MaxIterationsExceeded()
 
