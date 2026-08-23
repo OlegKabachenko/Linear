@@ -1,8 +1,9 @@
 __all__ = "Solver, MaxIterationsExceeded"
 
+import numpy as np
+import time
 
 from typing import Any
-import numpy as np
 from multiprocessing import Pool
 
 from tools.system import System
@@ -10,6 +11,7 @@ from tools.preprocessing import registry
 from tools.parallelexecutionpolicy import ParallelExecutionPolicy
 from tools.solverresultinfo import SolverResultInfo
 
+from numpy.random import Generator, Philox
 
 class MaxIterationsExceeded(Exception):
     pass
@@ -191,5 +193,78 @@ class Solver():
 
         raise MaxIterationsExceeded()
 
+    def monte_worker(self, a, b, n, k):
+        row_sums = np.sum(np.abs(a), axis=1)
+        prob = np.abs(a) / row_sums[:, None]
+
+        rng = Generator(Philox())
+
+        x_cnt = len(b)
+        x = np.zeros(x_cnt)
+
+        for start_state in range(x_cnt):
+            results = []
+
+            for walk in range(n):
+                curr_state = start_state
+
+
+                value = b[curr_state]
+                w = 1.0
+
+                for _ in range(k):
+                    next_state = rng.choice(x_cnt, p=prob[curr_state])
+
+                    transition_weight = (a[curr_state, next_state] / prob[curr_state, next_state])
+
+                    w *= transition_weight
+                    curr_state = next_state
+
+                    value += w * b[curr_state]
+
+                results.append(value)
+
+            x[start_state] = np.mean(results)
+
+        return x
+
     def monte_carlo_method(self, system: System, params: dict[str, Any]):
-        pass
+        a, b = self._apply_preprocessing(system, params)
+
+        parallel = params.get("is_parallel", False)
+        n = params.get("n", 10000)
+        k = params.get("trajectory_lenght", 20)
+
+        if not parallel:
+            x = self.monte_worker(a, b, n, k)
+
+        else:
+            processes = ParallelExecutionPolicy.get_process_count(n)
+
+            base_n = n // processes
+            remainder = n % processes
+
+            n_per_process = [
+                base_n + (1 if i < remainder else 0)
+                for i in range(processes)
+            ]
+
+            with Pool(processes=processes) as pool:
+                results = pool.starmap(
+                    self.monte_worker,
+                    [
+                        (a, b, n_local, k)
+                        for n_local in n_per_process
+                    ]
+                )
+
+            x = np.mean(results, axis=0)
+
+        return self._build_result_info(
+            x,
+            a=a
+        )
+
+
+
+

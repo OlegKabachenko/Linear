@@ -1,5 +1,5 @@
-__all__ = ("BaseParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam",
-           "SizeParam", "DotsCntParam", "SizeParamExtra, PreconditionParams")
+__all__ = ("BaseParamLayout", "WideParamLayout", "StandartParam", "IntParam", "FloatParam", "ClassicMethodsParam",
+           "SizeParam", "SizeParamExtra, PreconditionParams", "MonteParams")
 
 import yaml
 import os
@@ -156,6 +156,29 @@ class BaseParamLayout(MDBoxLayout):  #Base layout for function parameters
             return widget.text
 
 
+class WideParamLayout(BaseParamLayout):
+    def orientation_check(self):
+        screen_width = Window.width
+        screen_height = Window.height
+        critical_wdth = screen_width * config['APP_WIDE_SCR_MULT']
+
+        if critical_wdth > screen_height and self.height != self.h_height:
+            self.spacing = "0dp"
+        else:
+            self.spacing = "10sp"
+
+        Clock.schedule_once(self._update_height, 0)
+
+    def _update_height(self, dt):
+        if not self.is_animated:
+            total_height = sum(child.height for child in self.children)
+
+            spacing = self.spacing if isinstance(self.spacing, (int, float)) else self.spacing[1]
+            total_height += spacing * max(0, len(self.children))
+            total_height += self.padding[1] + self.padding[3]
+
+            self.height = total_height
+
 class StandartParam(BaseParamLayout):
     input_type = StringProperty()
     min_value = NumericProperty(None)
@@ -232,7 +255,7 @@ class PreconditionParams(MDBoxLayout):
         return result
 
 
-class ClassicMethodsParam(BaseParamLayout):
+class ClassicMethodsParam(WideParamLayout):
     min_scale = NumericProperty(None)
     max_scale = NumericProperty(None)
     min_itr = NumericProperty(None)
@@ -244,28 +267,6 @@ class ClassicMethodsParam(BaseParamLayout):
         super().__init__(**kwargs)
         self.ids.precond_param.min_scale = self.min_scale
         self.ids.precond_param.max_scale = self.max_scale
-
-    def orientation_check(self):
-        screen_width = Window.width
-        screen_height = Window.height
-        critical_wdth = screen_width * config['APP_WIDE_SCR_MULT']
-
-        if critical_wdth > screen_height and self.height != self.h_height:
-            self.spacing = "0dp"
-        else:
-            self.spacing = "10sp"
-
-        Clock.schedule_once(self._update_height, 0)
-
-    def _update_height(self, dt):
-        if not self.is_animated:
-            total_height = sum(child.height for child in self.children)
-
-            spacing = self.spacing if isinstance(self.spacing, (int, float)) else self.spacing[1]
-            total_height += spacing * max(0, len(self.children))
-            total_height += self.padding[1] + self.padding[3]
-
-            self.height = total_height
 
     def get_params(self, **kwargs):
         result = self.ids.precond_param.get_params()
@@ -281,9 +282,20 @@ class SizeParam(IntParam):
     hint = "Розмірність системи"
 
 
-class DotsCntParam(IntParam):
-    forbid_negative_param = True
-    hint = "Кількість точок"
+class MonteParams(WideParamLayout):
+    min_n = NumericProperty(None)
+    max_n = NumericProperty(None)
+    min_tr_lenght = NumericProperty(None)
+    max_tr_lenght = NumericProperty(None)
+
+    def get_params(self, **kwargs):
+        result = self.ids.precond_param.get_params()
+        result["n"] = self.ids.t_cnt.get_params()
+        result["trajectory_lenght"] = self.ids.t_lenght.get_params()
+
+        return result
+
+
 
 
 class SizeParamExtra(BaseParamLayout):

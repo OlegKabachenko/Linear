@@ -21,7 +21,7 @@ from uix.standartboxlayout import StandartRootBox
 from uix.restrictedscrollview import RestrictedScrollView
 from uix.systemdatabox import SystemDataBox
 from uix.customdialog import ErrorDialog
-from uix.params import ClassicMethodsParam, DotsCntParam
+from uix.params import ClassicMethodsParam, MonteParams
 from uix.sizablebtn import ExitBtn, SizableFabBtn
 from uix.calculatebox import CalculateBox
 
@@ -60,6 +60,10 @@ class MainScreen(MDScreen):
 
         self.min_n = self.app_config["MIN_N"]
         self.max_n = self.app_config["MAX_N"]
+        self.min_monte_n = self.app_config["MIN_MONTE_N"]
+        self.max_monte_n = self.app_config["MAX_MONTE_N"]
+        self.min_tr_lenght = self.app_config["MIN_TRAJECTORY_LENGHT"]
+        self.max_tr_lenght = self.app_config["MAX_TRAJECTORY_LENGHT"]
         self.min_scale = self.app_config["MIN_SCALE"]
         self.max_scale = self.app_config["MAX_SCALE"]
         self.min_max_itr = self.app_config["MIN_MAX_ITR"]
@@ -102,7 +106,12 @@ class MainScreen(MDScreen):
             min_eps=self.min_eps,
             max_eps=self.max_eps,
         )
-        self.monte_param = DotsCntParam()
+        self.monte_param = MonteParams(
+            min_n=self.min_monte_n,
+            max_n=self.max_monte_n,
+            min_tr_lenght = self.min_tr_lenght,
+            max_tr_lenght=self.max_tr_lenght,
+        )
 
         self.extra_widgets = []
         self.extra_widgets_map = {

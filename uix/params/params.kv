@@ -89,6 +89,33 @@
 	    size_hint_y: None
         height: dp(10)
 
+<MonteParams>:
+    orientation: "vertical"
+    padding: (0, 10, 0, 0)
+
+    IntParam:
+        id: t_cnt
+        min_value: root.min_n
+        max_value: root.max_n
+        forbid_negative_param: True
+        hint: "Кількість траєкторій"
+
+    IntParam:
+        id: t_lenght
+        min_value: root.min_tr_lenght
+        max_value: root.max_tr_lenght
+        forbid_negative_param: True
+        hint: "Довжина траєкторій"
+
+    PreconditionParams:
+        id: precond_param
+
+    MDWidget:
+        id: dummy
+	    size_hint_y: None
+        height: dp(10)
+
+
 <SizeParamExtra>:
     MDBoxLayout:
         id: size_box

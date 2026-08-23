@@ -47,22 +47,17 @@
 
         MDBoxLayout:
             orientation: "vertical"
-            adaptive_height: True
+            size_hint_y: None
+            height: max(self.minimum_height, self.parent.height)
             spacing: "10dp"
 
-            MDBoxLayout:
-                id: indicator_box
-                size_hint_y: None
-                height: 0
-
-                Widget:
-
-                MDLoadingIndicator:
-                    id: indicator
-                    shape_size: max(indicator_box.height, dp(1))
-                    shape_sequence: ["cookie12Sided", "pentagon"]
-
-                Widget:
+            Widget:
+                size_hint_y: 1
 
             ResultBox:
                 id: result_box
+                size_hint_y: None
+                height: self.minimum_height
+
+            Widget:
+                size_hint_y: 1

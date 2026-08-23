@@ -56,7 +56,6 @@ class ResultLabel(MDLabel, SizableFontMixin):
         self.font_size = self.calculate_font(
             self.text,
             font_mlt_narrow=self.font_mlt_narrow,
-
             max_font=config['RES_LBL_MAX_FONT'],
             min_font=config['RES_LBL_MIN_FONT']
         )
@@ -66,7 +65,7 @@ class ResultBox(MDBoxLayout):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    def _add_label(self, text, bold=False, font_mlt_narrow=config['RES_LBL_FMN']):
+    def add_label(self, text, bold=False, font_mlt_narrow=config['RES_LBL_FMN']):
         self.add_widget(
             ResultLabel(
                 text=text,
@@ -100,14 +99,14 @@ class ResultBox(MDBoxLayout):
                 else:
                     text = f"{label}: {value:.{precision}f}{suffix}"
 
-                self._add_label(
+                self.add_label(
                     text,
                     bold=bold,
                     font_mlt_narrow=font_mlt_narrow
                 )
 
             else:
-                self._add_label(
+                self.add_label(
                     label,
                     bold=bold,
                     font_mlt_narrow=font_mlt_narrow
@@ -122,7 +121,7 @@ class ResultBox(MDBoxLayout):
                     if item_label is not None:
                         text = f"{item_label}{i} = {text}"
 
-                    self._add_label(text)
+                    self.add_label(text)
 
 
 class CalculateBox(MDBoxLayout):
@@ -140,15 +139,11 @@ class CalculateBox(MDBoxLayout):
     def on_error(self, message):
         pass
 
-    def _show_indicator(self):
-        self.ids.indicator_box.height = max(self.height * 0.4, dp(60))
-        self.ids.indicator_box.opacity = 1
-        self.ids.indicator.start()
+    def _show_wait_indicator(self):
+        self.ids.result_box.add_label("Будь ласка, зачекайте!", True)
 
     def _hide_indicator(self):
-        self.ids.indicator.stop()
-        self.ids.indicator_box.opacity = 0
-        self.ids.indicator_box.height = 0
+        self.clear_output()
 
     def clear_output(self):
         if self.ids.result_box.children:
@@ -156,21 +151,19 @@ class CalculateBox(MDBoxLayout):
 
     def calculate_roots(self, system, method, extra_params):
         self.clear_output()
-
-        self._show_indicator()
-        Thread(
-            target=self._solve_worker,
-            args=(system, method, extra_params),
-            daemon=True
-        ).start()
+        self._show_wait_indicator()        
+        
+        Clock.schedule_once(
+            lambda dt: self._solve_worker(system, method, extra_params)
+        )
 
     def _solve_worker(self, system, method, extra_params):
+        success = False
+
         try:
             result = self.call_solver(system, method, **extra_params)
-
-            Clock.schedule_once(
-                lambda dt: self._on_solver_finished(system, result)
-            )
+            success = True
+            self._on_solver_finished(system, result)         
 
         except MaxIterationsExceeded:
             Clock.schedule_once(
@@ -197,8 +190,9 @@ class CalculateBox(MDBoxLayout):
             )
 
         finally:
-            Clock.schedule_once(lambda dt: self._hide_indicator())
-
+            if not success:
+                self._hide_indicator()
+              
     def _on_solver_finished(self, system: System, result):
         if result is None:
             return
@@ -209,6 +203,7 @@ class CalculateBox(MDBoxLayout):
         resultinfo.add_deltas(system.verify_solution(x))
         resultinfo.add_exec_time(exec_time)
 
+        self._hide_indicator()
         self.ids.result_box.show_result(resultinfo)
 
     def call_solver(self, system: System, method, **kwargs):
