@@ -28,6 +28,7 @@ from uix.mixins import SizableFontMixin
 
 from tools.solver import MaxIterationsExceeded
 from tools.preprocessing import FailedPreprocessingStrategy
+from tools.preprocessing import InvalidIterationMatrixError
 from tools.system import System
 from tools.solverresultinfo import SolverResultInfo
 
@@ -185,7 +186,15 @@ class CalculateBox(MDBoxLayout):
             Clock.schedule_once(
                 lambda dt: self.dispatch(
                     "on_error",
-                    "Не вдалося виконати передобробку, спробуйте іншу!"
+                    "Не вдалося виконати передобробку, спробуйте іншу, або змініть налаштування!"
+                )
+            )
+
+        except InvalidIterationMatrixError:
+            Clock.schedule_once(
+                lambda dt: self.dispatch(
+                    "on_error",
+                    "Спектральний радіус більше за 1, спробуйте змінити налаштування попередньої обробки!"
                 )
             )
 

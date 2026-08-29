@@ -1,8 +1,14 @@
+__all__ = "FailedPreprocessingStrategy, InvalidIterationMatrixError, PreprocessingRegistry"
+
 import numpy as np
 from scipy.optimize import linear_sum_assignment
 
 
 class FailedPreprocessingStrategy(Exception):
+    pass
+
+
+class InvalidIterationMatrixError(Exception):
     pass
 
 
@@ -53,8 +59,8 @@ class PreprocessingStrategy:
     def to_canonical_iterative_form(self, a, b):
         n = len(a)
 
-        c = np.zeros((n, n))
-        d = np.zeros(n)
+        B = np.zeros((n, n))
+        bn = np.zeros(n)
 
         for i in range(n):
             diag = a[i][i]
@@ -63,13 +69,20 @@ class PreprocessingStrategy:
 
             for j in range(n):
                 if i == j:
-                    c[i][j] = 0.0
+                    B[i][j] = 0.0
                 else:
-                    c[i][j] = -a[i][j] / diag
+                    B[i][j] = -a[i][j] / diag
 
-            d[i] = b[i] / diag
+            bn[i] = b[i] / diag
 
-        return c, d
+        return B, bn
+
+    def validate_iteration_matrix(self, B):
+        eigenvalues = np.linalg.eigvals(B)
+        spectral_radius = np.max(np.abs(eigenvalues))
+
+        if spectral_radius >= 1:
+            raise InvalidIterationMatrixError()
 
 
 class Preconditioning(PreprocessingStrategy):
@@ -99,9 +112,11 @@ class Preconditioning(PreprocessingStrategy):
         if not (self.is_diagonally_dominant(an)):
             an, bn = self.to_dominant(an, bn)
 
-        an, bn = self.to_canonical_iterative_form(an, bn)
+        B, b = self.to_canonical_iterative_form(an, bn)
 
-        return an, bn
+        self.validate_iteration_matrix(B)
+
+        return B, b
 
 
 class Spectral(PreprocessingStrategy):
@@ -118,12 +133,14 @@ class Spectral(PreprocessingStrategy):
 
         eps = v / 10
 
-        alpha = a * eps
+        B = a * eps
 
         i = np.eye(a.shape[0])
-        beta = (a_inv - eps * i) @ b
+        b = (a_inv - eps * i) @ b
 
-        return alpha, beta
+        self.validate_iteration_matrix(B)
+
+        return B, b
 
 
 class NonePreprocessing(PreprocessingStrategy):
@@ -135,9 +152,11 @@ class NonePreprocessing(PreprocessingStrategy):
         if not (self.is_diagonally_dominant(a)):
             a, b = self.to_dominant(a, b)
 
-        an, bn = self.to_canonical_iterative_form(a, b)
+        B, b = self.to_canonical_iterative_form(a, b)
 
-        return an, bn
+        self.validate_iteration_matrix(B)
+
+        return B, b
 
 
 class PreprocessingRegistry:

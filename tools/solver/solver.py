@@ -13,6 +13,7 @@ from tools.solverresultinfo import SolverResultInfo
 
 from numpy.random import Generator, Philox
 
+
 class MaxIterationsExceeded(Exception):
     pass
 
@@ -51,32 +52,32 @@ class Solver():
 
         return strategy.process(a, b, params)
 
-    def _compute_row_jacobi(self, a, b, x, i):
+    def _compute_row_jacobi(self, B, b, x, i):
         s = 0.0
-        for j in range(len(a[i])):
-            s += a[i][j] * x[j]
+        for j in range(len(B[i])):
+            s += B[i][j] * x[j]
 
         return s + b[i]
 
-    def _serial_iteration_jacobi(self, a, b, x, x_new):
-        n = len(a)
+    def _serial_iteration_jacobi(self, B, b, x, x_new):
+        n = len(B)
 
         for i in range(n):
-            value = self._compute_row_jacobi(a, b, x, i)
+            value = self._compute_row_jacobi(B, b, x, i)
             x_new[i] = value
 
     def _compute_chunk_jacobi(self, args):
-        a, b, x, indices = args
+        B, b, x, indices = args
         result = []
 
         for i in indices:
-            value = self._compute_row_jacobi(a, b, x, i)
+            value = self._compute_row_jacobi(B, b, x, i)
             result.append((i, value))
 
         return result
 
-    def _parallel_iteration_jacobi(self, pool, a, b, x, x_new, indices):
-        args = [(a, b, x, idx) for idx in indices]
+    def _parallel_iteration_jacobi(self, pool, B, b, x, x_new, indices):
+        args = [(B, b, x, idx) for idx in indices]
 
         results = pool.map(self._compute_chunk_jacobi, args)
 
@@ -84,18 +85,18 @@ class Solver():
             for i, value in chunk:
                 x_new[i] = value
 
-    def get_norms(self, a):
-        m = np.max(np.sum(np.abs(a), axis=1))
-        n = np.max(np.sum(np.abs(a), axis=0))
+    def get_norms(self, mtrx):
+        m = np.max(np.sum(np.abs(mtrx), axis=1))
+        n = np.max(np.sum(np.abs(mtrx), axis=0))
 
         return m, n
 
-    def get_spectral_radius(self, a):
-        eigenvalues = np.linalg.eigvals(a)
+    def get_spectral_radius(self, mtrx):
+        eigenvalues = np.linalg.eigvals(mtrx)
         spectral_radius = max(abs(eigenvalues))
         return spectral_radius
 
-    def _build_result_info(self, x, iteration=None, a=None):
+    def _build_result_info(self, x, iteration=None, mtrx=None):
         resultinfo = SolverResultInfo()
 
         resultinfo.add_solution(x)
@@ -103,12 +104,12 @@ class Solver():
         if iteration is not None:
             resultinfo.add_iterations(iteration)
 
-        if a is not None:
+        if mtrx is not None:
             resultinfo.add_spectral_radius(
-                self.get_spectral_radius(a)
+                self.get_spectral_radius(mtrx)
             )
 
-            m, n = self.get_norms(a)
+            m, n = self.get_norms(mtrx)
             resultinfo.add_norms(m, n)
 
         return resultinfo
@@ -122,7 +123,7 @@ class Solver():
         return self._build_result_info(x)
 
     def jacobi_method(self, system: System, params: dict[str, Any]):
-        a, b = self._apply_preprocessing(system, params)
+        B, b = self._apply_preprocessing(system, params)
 
         eps = params.get("eps", 0.01)
         limit = params.get("limit", 15)
@@ -143,9 +144,9 @@ class Solver():
         try:
             for iteration in range(limit):
                 if parallel:
-                    self._parallel_iteration_jacobi(pool, a, b, x, x_new, indices)
+                    self._parallel_iteration_jacobi(pool, B, b, x, x_new, indices)
                 else:
-                    self._serial_iteration_jacobi(a, b, x, x_new)
+                    self._serial_iteration_jacobi(B, b, x, x_new)
 
                 error = np.max(np.abs(x_new - x))
 
@@ -153,7 +154,7 @@ class Solver():
                     return self._build_result_info(
                         x_new,
                         iteration=iteration+1,
-                        a=a
+                        mtrx=B
                     )
 
                 x[:] = x_new
@@ -193,9 +194,9 @@ class Solver():
 
         raise MaxIterationsExceeded()
 
-    def monte_worker(self, a, b, n, k):
-        row_sums = np.sum(np.abs(a), axis=1)
-        prob = np.abs(a) / row_sums[:, None]
+    def monte_worker(self, B, b, n, k):
+        row_sums = np.sum(np.abs(B), axis=1)
+        prob = np.abs(B) / row_sums[:, None]
 
         rng = Generator(Philox())
 
@@ -208,14 +209,13 @@ class Solver():
             for walk in range(n):
                 curr_state = start_state
 
-
                 value = b[curr_state]
                 w = 1.0
 
                 for _ in range(k):
                     next_state = rng.choice(x_cnt, p=prob[curr_state])
 
-                    transition_weight = (a[curr_state, next_state] / prob[curr_state, next_state])
+                    transition_weight = (B[curr_state, next_state] / prob[curr_state, next_state])
 
                     w *= transition_weight
                     curr_state = next_state
@@ -229,14 +229,14 @@ class Solver():
         return x
 
     def monte_carlo_method(self, system: System, params: dict[str, Any]):
-        a, b = self._apply_preprocessing(system, params)
+        B, b = self._apply_preprocessing(system, params)
 
         parallel = params.get("is_parallel", False)
         n = params.get("n", 10000)
         k = params.get("trajectory_lenght", 20)
 
         if not parallel:
-            x = self.monte_worker(a, b, n, k)
+            x = self.monte_worker(B, b, n, k)
 
         else:
             processes = ParallelExecutionPolicy.get_process_count(n)
@@ -253,7 +253,7 @@ class Solver():
                 results = pool.starmap(
                     self.monte_worker,
                     [
-                        (a, b, n_local, k)
+                        (B, b, n_local, k)
                         for n_local in n_per_process
                     ]
                 )
@@ -262,7 +262,7 @@ class Solver():
 
         return self._build_result_info(
             x,
-            a=a
+            mtrx=B
         )
 
 
