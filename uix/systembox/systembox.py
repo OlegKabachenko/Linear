@@ -90,6 +90,13 @@ class SystemBrace(Widget):
                 width=2
             )
 
+    def hide(self):
+        self.canvas.opacity = 0
+
+    def show(self):
+        self.canvas.opacity = 1
+
+
 
 class SystemLabel(MDLabel):
     font = NumericProperty()
@@ -122,6 +129,7 @@ class SystemBox(MDBoxLayout):
             row.clear_widgets()
 
         equations_box.clear_widgets()
+        self.ids.brace.hide()
 
     def add_element(self, row, widget, index=None):
         if index is None:
@@ -178,6 +186,7 @@ class SystemBox(MDBoxLayout):
         for i in range(n):
             self.create_row(n, i, equations_box)
 
+        self.ids.brace.show()
         Clock.schedule_once(self.update_brace)
 
     def update_brace(self, *args):

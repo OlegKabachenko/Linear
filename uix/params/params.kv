@@ -93,19 +93,19 @@
     orientation: "vertical"
     padding: (0, 10, 0, 0)
 
-    IntParam:
-        id: t_cnt
-        min_value: root.min_n
-        max_value: root.max_n
+    FloatParam:
+        id: eps
+        min_value: root.min_eps
+        max_value: root.max_eps
         forbid_negative_param: True
-        hint: "Кількість траєкторій"
+        hint: "Похибка"
 
-    IntParam:
-        id: t_lenght
-        min_value: root.min_tr_lenght
-        max_value: root.max_tr_lenght
+    FloatParam:
+        id: alpha
+        min_value: root.min_alpha
+        max_value: root.max_alpha
         forbid_negative_param: True
-        hint: "Довжина траєкторій"
+        hint: "Рівень значущості"
 
     PreconditionParams:
         id: precond_param

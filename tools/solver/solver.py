@@ -6,6 +6,8 @@ import time
 from typing import Any
 from multiprocessing import Pool
 
+from scipy.stats import t
+
 from tools.system import System
 from tools.preprocessing import registry
 from tools.parallelexecutionpolicy import ParallelExecutionPolicy
@@ -194,21 +196,15 @@ class Solver():
 
         raise MaxIterationsExceeded()
 
-    def monte_worker(self, B, b, n, k):
-        row_sums = np.sum(np.abs(B), axis=1)
-        prob = np.abs(B) / row_sums[:, None]
-
+    def monte_worker(self, B, b, prob, n, k):
         rng = Generator(Philox())
 
         x_cnt = len(b)
-        x = np.zeros(x_cnt)
+        results = [[] for _ in range(x_cnt)]
 
         for start_state in range(x_cnt):
-            results = []
-
-            for walk in range(n):
+            for _ in range(n):
                 curr_state = start_state
-
                 value = b[curr_state]
                 w = 1.0
 
@@ -222,49 +218,128 @@ class Solver():
 
                     value += w * b[curr_state]
 
-                results.append(value)
+                results[start_state].append(value)
 
-            x[start_state] = np.mean(results)
+        return results
 
-        return x
+    def choose_trj_lnght(self, B, b, eps):
+        q = np.linalg.norm(B, ord=np.inf)
+        b_norm = np.linalg.norm(b, ord=np.inf)
+
+        if b_norm == 0 or q == 0:
+            return 0
+
+        val = eps *(1-q)/b_norm
+        k = int(np.ceil(np.log(val)/np.log(q) - 1))
+        return k
 
     def monte_carlo_method(self, system: System, params: dict[str, Any]):
         B, b = self._apply_preprocessing(system, params)
 
+        eps = params.get("eps", 0.1)
+        alpha = params.get("alpha", 0.05)
+
+        eps_k = eps * 0.4
+        eps_mc = eps * 0.6
+
+        start_n = params.get("start_monte_n", 20)
+        max_n = params.get("max_monte_n", 1000000)
+
         parallel = params.get("is_parallel", False)
-        n = params.get("n", 10000)
-        k = params.get("trajectory_lenght", 20)
 
-        if not parallel:
-            x = self.monte_worker(B, b, n, k)
+        if start_n > max_n:
+            raise MaxIterationsExceeded()
 
-        else:
-            processes = ParallelExecutionPolicy.get_process_count(n)
+        k = self.choose_trj_lnght(B, b, eps_k)
 
-            base_n = n // processes
-            remainder = n % processes
+        row_sums = np.sum(np.abs(B), axis=1)
+        prob = np.abs(B) / row_sums[:, None]
 
-            n_per_process = [
-                base_n + (1 if i < remainder else 0)
-                for i in range(processes)
-            ]
+        x_cnt = len(b)
 
-            with Pool(processes=processes) as pool:
-                results = pool.starmap(
-                    self.monte_worker,
-                    [
-                        (B, b, n_local, k)
-                        for n_local in n_per_process
-                    ]
+        results = [[] for _ in range(x_cnt)]
+
+        current_n = 0
+        n_total = start_n
+
+        while True:
+            # Number of new trajectories that must be generated
+            n_to_generate = n_total - current_n
+
+            if not parallel:
+                new_results = self.monte_worker(B, b, prob, n_to_generate,k)
+
+                for i in range(x_cnt):
+                    results[i].extend(new_results[i])
+
+            else:
+                processes = ParallelExecutionPolicy.get_process_count(n_to_generate)
+
+                base_n = n_to_generate // processes
+                remainder = n_to_generate % processes
+
+                n_per_process = [
+                    base_n + (1 if i < remainder else 0)
+                    for i in range(processes)
+                ]
+
+                with Pool(processes=processes) as pool:
+                    process_results = pool.starmap(
+                        self.monte_worker,
+                        [
+                            (B, b, prob, n_local, k)
+                            for n_local in n_per_process
+                            if n_local > 0
+                        ]
+                    )
+
+                for process_result in process_results:
+                    for i in range(x_cnt):
+                        results[i].extend(process_result[i])
+
+            current_n = n_total
+
+            results_array = np.asarray(results)
+
+            t_value = t.ppf(1 - alpha / 2, df=n_total - 1)
+
+            x = np.mean(results_array, axis=1)
+            s = np.std(results_array, axis=1, ddof=1)
+
+            deltas = t_value * s / np.sqrt(n_total)
+
+            max_delta = np.max(deltas)
+            max_i = np.argmax(deltas)
+
+            if max_delta <= eps_mc:
+                break
+
+            n_new = int(np.ceil((t_value * s[max_i] / eps_mc) ** 2))
+
+            if n_new > max_n:
+                raise MaxIterationsExceeded()
+
+            if n_total > n_new:  #Theoretically, this exeption should not appear, if code is ok
+                raise Exception(
+                    "n_total > n_new, check programm logic!"
                 )
 
-            x = np.mean(results, axis=0)
+            n_total = n_new
 
-        return self._build_result_info(
+        resultinfo = self._build_result_info(
             x,
+            iteration=n_total,
             mtrx=B
         )
 
+        resultinfo.add(
+            "k",
+            k,
+            "Довжина ланцюга",
+            bold=True,
+            value_format="int",
+            order=100
+        )
 
-
+        return resultinfo
 

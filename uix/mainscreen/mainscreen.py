@@ -60,16 +60,19 @@ class MainScreen(MDScreen):
 
         self.min_n = self.app_config["MIN_N"]
         self.max_n = self.app_config["MAX_N"]
-        self.min_monte_n = self.app_config["MIN_MONTE_N"]
-        self.max_monte_n = self.app_config["MAX_MONTE_N"]
-        self.min_tr_lenght = self.app_config["MIN_TRAJECTORY_LENGHT"]
-        self.max_tr_lenght = self.app_config["MAX_TRAJECTORY_LENGHT"]
         self.min_scale = self.app_config["MIN_SCALE"]
         self.max_scale = self.app_config["MAX_SCALE"]
         self.min_max_itr = self.app_config["MIN_MAX_ITR"]
         self.max_max_itr = self.app_config["MAX_MAX_ITR"]
         self.min_eps = self.app_config["MIN_EPS"]
         self.max_eps = self.app_config["MAX_EPS"]
+
+        self.start_monte_n = self.app_config["START_MONTE_N"]
+        self.max_monte_n = self.app_config["MAX_MONTE_N"]
+        self.min_monte_eps = self.app_config["MIN_MONTE_EPS"]
+        self.max_monte_eps = self.app_config["MAX_MONTE_EPS"]
+        self.min_alpha = self.app_config["MIN_ALPHA"]
+        self.max_alpha = self.app_config["MAX_ALPHA"]
 
     def _init_examples(self):
         self.primary_validate_examples()
@@ -107,10 +110,12 @@ class MainScreen(MDScreen):
             max_eps=self.max_eps,
         )
         self.monte_param = MonteParams(
-            min_n=self.min_monte_n,
-            max_n=self.max_monte_n,
-            min_tr_lenght = self.min_tr_lenght,
-            max_tr_lenght=self.max_tr_lenght,
+            min_eps=self.min_monte_eps,
+            max_eps=self.max_monte_eps,
+            min_alpha=self.min_alpha,
+            max_alpha=self.max_alpha,
+            start_monte_n=self.start_monte_n,
+            max_monte_n=self.max_monte_n,
         )
 
         self.extra_widgets = []

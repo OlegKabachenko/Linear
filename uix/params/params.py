@@ -47,7 +47,6 @@ class ParameterText(MDTextField, SizableFontMixin):
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
     can_be_zero = BooleanProperty(False)
-    _internal_update = BooleanProperty(False)
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -61,8 +60,6 @@ class ParameterText(MDTextField, SizableFontMixin):
             height_font_mlt=config['P_HEIGHT_FONT_MLT'])))
 
     def on_text(self, instance, value):
-        if self._internal_update is True:
-            return
 
         try:
             num = float(value)
@@ -75,10 +72,12 @@ class ParameterText(MDTextField, SizableFontMixin):
         if self.max_value is not None and num > self.max_value:
             Clock.schedule_once(lambda dt: self.set_error(self), 0)
 
-        if not self.can_be_zero and value == "0":
-            self._internal_update = True
-            Clock.schedule_once(lambda dt: setattr(instance, "text", ""), 0)
-            Clock.schedule_once(lambda dt: setattr(self, "_internal_update", False), 0)
+        if not self.can_be_zero:
+            try:
+                if float(value) == 0:
+                    Clock.schedule_once(lambda dt: self.set_error(self), 0)
+            except ValueError:
+                pass
 
     def insert_text(self, substring, from_undo=False):
         if self.forbid_negative:
@@ -179,12 +178,22 @@ class WideParamLayout(BaseParamLayout):
 
             self.height = total_height
 
+
 class StandartParam(BaseParamLayout):
     input_type = StringProperty()
     min_value = NumericProperty(None)
     max_value = NumericProperty(None)
     can_be_zero = BooleanProperty(False)
     value = StringProperty()
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Clock.schedule_once(self._set_default_value, 0)
+
+    def _set_default_value(self, dt):
+        if self.min_value is not None:
+            self.ids.input.text = str(self.min_value)
+
 
     def is_error(self):
         return self.ids.input.error
@@ -283,19 +292,21 @@ class SizeParam(IntParam):
 
 
 class MonteParams(WideParamLayout):
-    min_n = NumericProperty(None)
-    max_n = NumericProperty(None)
-    min_tr_lenght = NumericProperty(None)
-    max_tr_lenght = NumericProperty(None)
+    start_monte_n = NumericProperty(None)
+    max_monte_n = NumericProperty(None)
+    min_eps = NumericProperty(None)
+    max_eps = NumericProperty(None)
+    min_alpha = NumericProperty(None)
+    max_alpha = NumericProperty(None)
 
     def get_params(self, **kwargs):
         result = self.ids.precond_param.get_params()
-        result["n"] = self.ids.t_cnt.get_params()
-        result["trajectory_lenght"] = self.ids.t_lenght.get_params()
+        result["eps"] = self.ids.eps.get_params()
+        result["alpha"] = self.ids.alpha.get_params()
+        result["start_monte_n"] = self.start_monte_n
+        result["max_monte_n"] = self.max_monte_n
 
         return result
-
-
 
 
 class SizeParamExtra(BaseParamLayout):

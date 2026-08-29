@@ -81,7 +81,9 @@ class PreprocessingStrategy:
         eigenvalues = np.linalg.eigvals(B)
         spectral_radius = np.max(np.abs(eigenvalues))
 
-        if spectral_radius >= 1:
+        tol = 1e-6
+
+        if spectral_radius >= 1 - tol:
             raise InvalidIterationMatrixError()
 
 

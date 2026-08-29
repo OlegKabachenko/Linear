@@ -86,3 +86,7 @@ class SystemDataBox(MDBoxLayout):
 
     def delete_extra_params(self, delete_duration):
         self.animator.animate_container_clear(self.ids.extra_params_box, delete_duration)
+
+    def delete_system(self):
+        self.ids.system.delete_system()
+
