@@ -1,0 +1,1 @@
+from .sizablefontlabel import SizableFontLabel

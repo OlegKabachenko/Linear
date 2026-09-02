@@ -27,6 +27,7 @@ from uix.sizablebtn import SizableFabBtn
 from uix.customdialog import ErrorDialog
 from uix.bigtouchswitch import BigTouchSwitch
 from uix.controlbox import SelectorBox
+from uix.sizablefontlabel import SizableFontLabel
 
 from tools.preprocessing import registry
 
@@ -305,6 +306,7 @@ class MonteParams(WideParamLayout):
         result["alpha"] = self.ids.alpha.get_params()
         result["start_monte_n"] = self.start_monte_n
         result["max_monte_n"] = self.max_monte_n
+        result["is_tridiagonal"] = self.ids.is_tridiagonal.active
 
         return result
 

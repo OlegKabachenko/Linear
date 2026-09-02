@@ -1,3 +1,4 @@
+
 <ParameterText>:
 	mode: "filled"
 	required: self.is_required
@@ -92,6 +93,26 @@
 <MonteParams>:
     orientation: "vertical"
     padding: (0, 10, 0, 0)
+
+    MDBoxLayout:
+        orientation: "vertical"
+        adaptive_height: True
+        padding: (30, 10, 30, 10)
+        spacing: 10
+
+        SizableFontLabel:
+            text: "Використовувати швидший метод для матриць із тридіагональною структурою."
+            halign: "center"
+            theme_text_color: "Secondary"
+            adaptive_height: True
+            text_size: self.width, None
+            min_font: dp(15)
+            max_font: dp(25)
+            font_mlt_wide: 1.9
+
+        BigTouchSwitch:
+            id: is_tridiagonal
+            pos_hint: {"center_y": 0.5, "center_x": 0.5}
 
     FloatParam:
         id: eps

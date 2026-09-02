@@ -12,7 +12,7 @@ from kivy.properties import NumericProperty
 from kivy.clock import Clock
 from kivymd.uix.boxlayout import MDBoxLayout
 
-from tools.solver import Solver
+from tools.solvers import METHODS
 from tools.system import System
 
 from uix.controlbox import SelectorBox
@@ -94,10 +94,8 @@ class MainScreen(MDScreen):
         ]
 
     def _init_methods(self):
-        solver = Solver()
-        self.METHODS = solver.METHODS
+        self.METHODS = METHODS
         self.METHOD_KEYS = list(self.METHODS.keys())
-        self.METHOD_VALUES = [info["function"] for info in self.METHODS.values()]
 
     def _init_widgets(self):
         self.error_dialog = ErrorDialog()
@@ -129,7 +127,7 @@ class MainScreen(MDScreen):
         self.ids.example_selector.items_list = self.EXAMPLE_KEYS
         self.ids.method_selector.items_list = self.METHOD_KEYS
 
-        self.ids.example_selector.default_element_id =self.DEFAULT_EXAMPLE_ID
+        self.ids.example_selector.default_element_id = self.DEFAULT_EXAMPLE_ID
         self.ids.method_selector.default_element_id = self.DEFAULT_METHOD_ID
 
         self.ids.example_selector.bind(on_select=lambda _, s_id, prev_id: self.handle_example_select(s_id, prev_id))
@@ -175,13 +173,16 @@ class MainScreen(MDScreen):
         self.ids.systemdatabox.add_extra_params(self.extra_widgets[i], self.ANIMATION_DURATION)
 
     def manage_parallel_switch(self, i):
-        parallel_swicth = self.ids.parallel_switch
+        parallel_switch = self.ids.parallel_switch
 
-        if self.METHODS[self.METHOD_KEYS[i]]["can_be_parallel"] is True:
-            parallel_swicth.disabled = False
+        method_key = self.METHOD_KEYS[i]
+        method_info = self.METHODS[method_key]
+
+        if method_info["can_be_parallel"]:
+            parallel_switch.disabled = False
         else:
-            parallel_swicth.active = False
-            parallel_swicth.disabled = True
+            parallel_switch.active = False
+            parallel_switch.disabled = True
 
     def is_parallel_mode_enabled(self):
         parallel_switch = self.ids.parallel_switch
@@ -203,7 +204,12 @@ class MainScreen(MDScreen):
         self.ids.systemdatabox.set_system_size(n)
 
     def get_current_method(self):
-        return self.METHOD_VALUES[self.current_method_id]
+        method_key = self.METHOD_KEYS[self.current_method_id]
+        method_info = self.METHODS[method_key]
+
+        solver_class = method_info["solver"]
+
+        return solver_class()
 
     def get_system_roots(self):
         params = self.ids.systemdatabox.get_system_params()
@@ -212,11 +218,11 @@ class MainScreen(MDScreen):
             return
 
         system, extra_params = params
-        method = self.get_current_method()
+        solver = self.get_current_method()
         is_parallel = self.is_parallel_mode_enabled()
         extra_params["is_parallel"] = is_parallel
 
-        self.ids.calculate_box.calculate_roots(system, method, extra_params)
+        self.ids.calculate_box.calculate_roots(system, solver, extra_params)
 
     def show_error(self, text):
         self.error_dialog.set_head_text(text)

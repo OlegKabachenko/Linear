@@ -26,7 +26,7 @@ from uix.restrictedscrollview import RestrictedScrollView
 from uix.sizablebtn import SizableFabBtn
 from uix.mixins import SizableFontMixin
 
-from tools.solver import MaxIterationsExceeded
+from tools.exceptions import MaxIterationsExceeded
 from tools.preprocessing import FailedPreprocessingStrategy
 from tools.preprocessing import InvalidIterationMatrixError
 from tools.system import System
@@ -41,6 +41,7 @@ with open(config_path, 'r') as file, \
      open(kv_path, encoding="utf-8") as kv_file:
     config = yaml.safe_load(file)
     Builder.load_string(kv_file.read())
+
 
 class ResultLabel(MDLabel, SizableFontMixin):
     font_mlt_narrow = NumericProperty(config['RES_LBL_FMN'])
@@ -150,19 +151,18 @@ class CalculateBox(MDBoxLayout):
         if self.ids.result_box.children:
             self.ids.result_box.clear_widgets()
 
-    def calculate_roots(self, system, method, extra_params):
+    def calculate_roots(self, system, solver, extra_params):
         self.clear_output()
-        self._show_wait_indicator()        
-        
-        Clock.schedule_once(
-            lambda dt: self._solve_worker(system, method, extra_params)
+        self._show_wait_indicator()
+
+        Clock.schedule_once(lambda dt: self._solve_worker(system, solver, extra_params)
         )
 
-    def _solve_worker(self, system, method, extra_params):
+    def _solve_worker(self, system, solver, extra_params):
         success = False
 
         try:
-            result = self.call_solver(system, method, **extra_params)
+            result = self.call_solver(system, solver, **extra_params)
             success = True
             self._on_solver_finished(system, result)         
 
@@ -215,10 +215,10 @@ class CalculateBox(MDBoxLayout):
         self._hide_indicator()
         self.ids.result_box.show_result(resultinfo)
 
-    def call_solver(self, system: System, method, **kwargs):
+    def call_solver(self, system: System, solver, **kwargs):
         start_time = time.time()
 
-        result = method(system, kwargs)
+        result = solver.solve(system, kwargs)
 
         end_time = time.time()
 
