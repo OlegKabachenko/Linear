@@ -27,8 +27,8 @@ from uix.sizablebtn import SizableFabBtn
 from uix.mixins import SizableFontMixin
 
 from tools.exceptions import MaxIterationsExceeded
-from tools.preprocessing import FailedPreprocessingStrategy
-from tools.preprocessing import InvalidIterationMatrixError
+from tools.exceptions import FailedPreprocessingStrategy
+from tools.exceptions import InvalidIterationMatrixError
 from tools.system import System
 from tools.solverresultinfo import SolverResultInfo
 

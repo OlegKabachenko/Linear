@@ -12,6 +12,7 @@ from tools.solverresultinfo import SolverResultInfo
 from tools.parallelexecutionpolicy import ParallelExecutionPolicy
 from tools.exceptions import MaxIterationsExceeded
 
+
 class JacobiSolver(Solver):
     def _compute_row_jacobi(self, B, b, x, i):
         s = 0.0

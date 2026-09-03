@@ -1,15 +1,8 @@
-__all__ = "FailedPreprocessingStrategy, InvalidIterationMatrixError, PreprocessingRegistry"
+__all__ = "PreprocessingRegistry"
 
 import numpy as np
 from scipy.optimize import linear_sum_assignment
-
-
-class FailedPreprocessingStrategy(Exception):
-    pass
-
-
-class InvalidIterationMatrixError(Exception):
-    pass
+from tools.exceptions import FailedPreprocessingStrategy, InvalidIterationMatrixError
 
 
 class PreprocessingStrategy:
