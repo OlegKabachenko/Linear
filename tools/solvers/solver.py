@@ -8,14 +8,14 @@ from typing import Any
 
 from tools.system import System
 from tools.solverresultinfo import SolverResultInfo
-from tools.preprocessing import registry
+from tools.preprocessing import preprocessing_registry
 
 from typing import TypedDict, Callable, Any
 
 
 class Solver(ABC):
     def _apply_preprocessing(self, system, params):
-        strategy = registry.get_by_key(params["p_type"])
+        strategy = preprocessing_registry.get_by_key(params["p_type"])
 
         a = system.get_x()
         b = system.get_y()

@@ -12,12 +12,12 @@ from tools.exceptions import MaxIterationsExceeded
 
 class SeidelSolver(Solver):
     def solve(self, system: System, params: dict[str, Any]):
-        B, b = self._apply_preprocessing(system, params)
+        B, d = self._apply_preprocessing(system, params)
 
         eps = params.get("eps", 0.01)
         limit = params.get("limit", 15)
         n = system.get_n()
-        x = np.copy(b)
+        x = np.copy(d)
 
         for iteration in range(limit):
             x_old = np.copy(x)
@@ -27,7 +27,7 @@ class SeidelSolver(Solver):
                 for j in range(n):
                     s += B[i][j] * x[j]
 
-                x[i] = s + b[i]
+                x[i] = s + d[i]
 
             error = np.max(np.abs(x - x_old))
 

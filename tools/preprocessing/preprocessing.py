@@ -4,19 +4,22 @@ import numpy as np
 from scipy.optimize import linear_sum_assignment
 from tools.exceptions import FailedPreprocessingStrategy, InvalidIterationMatrixError
 
+from abc import ABC, abstractmethod
 
-class PreprocessingStrategy:
+
+class PreprocessingStrategy(ABC):
     key = None
     label = None
 
-    def process(self, a, b, params):
-        raise NotImplementedError
+    @abstractmethod
+    def process(self, a, b, params) -> tuple[np.ndarray, np.ndarray]:
+        pass
 
-    def is_diagonally_dominant(self, a):
-        n = len(a)
+    def is_diagonally_dominant(self, mtrx):
+        n = len(mtrx)
         for i in range(n):
-            diag = abs(a[i][i])
-            off_diag_sum = np.sum(np.abs(a[i])) - diag
+            diag = abs(mtrx[i][i])
+            off_diag_sum = np.sum(np.abs(mtrx[i])) - diag
             if diag < off_diag_sum:
                 return False
         return True
@@ -53,7 +56,7 @@ class PreprocessingStrategy:
         n = len(a)
 
         B = np.zeros((n, n))
-        bn = np.zeros(n)
+        d = np.zeros(n)
 
         for i in range(n):
             diag = a[i][i]
@@ -66,12 +69,12 @@ class PreprocessingStrategy:
                 else:
                     B[i][j] = -a[i][j] / diag
 
-            bn[i] = b[i] / diag
+            d[i] = b[i] / diag
 
-        return B, bn
+        return B, d
 
-    def validate_iteration_matrix(self, B):
-        eigenvalues = np.linalg.eigvals(B)
+    def validate_iteration_matrix(self, mtrx):
+        eigenvalues = np.linalg.eigvals(mtrx)
         spectral_radius = np.max(np.abs(eigenvalues))
 
         tol = 1e-6
@@ -107,11 +110,11 @@ class Preconditioning(PreprocessingStrategy):
         if not (self.is_diagonally_dominant(an)):
             an, bn = self.to_dominant(an, bn)
 
-        B, b = self.to_canonical_iterative_form(an, bn)
+        B, d = self.to_canonical_iterative_form(an, bn)
 
         self.validate_iteration_matrix(B)
 
-        return B, b
+        return B, d
 
 
 class Spectral(PreprocessingStrategy):
@@ -131,11 +134,9 @@ class Spectral(PreprocessingStrategy):
         B = a * eps
 
         i = np.eye(a.shape[0])
-        b = (a_inv - eps * i) @ b
+        d = (a_inv - eps * i) @ b
 
-        self.validate_iteration_matrix(B)
-
-        return B, b
+        return B, d
 
 
 class NonePreprocessing(PreprocessingStrategy):
@@ -147,11 +148,11 @@ class NonePreprocessing(PreprocessingStrategy):
         if not (self.is_diagonally_dominant(a)):
             a, b = self.to_dominant(a, b)
 
-        B, b = self.to_canonical_iterative_form(a, b)
+        B, d = self.to_canonical_iterative_form(a, b)
 
         self.validate_iteration_matrix(B)
 
-        return B, b
+        return B, d
 
 
 class PreprocessingRegistry:
@@ -173,8 +174,8 @@ class PreprocessingRegistry:
         return [(i, s.label) for i, s in self._by_id.items()]
 
 
-registry = PreprocessingRegistry()
+preprocessing_registry = PreprocessingRegistry()
 
-registry.register(0, Preconditioning())
-registry.register(1, Spectral())
-registry.register(2, NonePreprocessing())
+preprocessing_registry.register(0, Preconditioning())
+preprocessing_registry.register(1, Spectral())
+preprocessing_registry.register(2, NonePreprocessing())

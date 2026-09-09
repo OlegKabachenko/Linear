@@ -29,7 +29,7 @@ from uix.bigtouchswitch import BigTouchSwitch
 from uix.controlbox import SelectorBox
 from uix.sizablefontlabel import SizableFontLabel
 
-from tools.preprocessing import registry
+from tools.preprocessing import preprocessing_registry
 
 
 base_path = Path(sys._MEIPASS) if getattr(sys, 'frozen', False) else ""
@@ -233,7 +233,7 @@ class PreconditionParams(MDBoxLayout):
         if s_id == prev_id:
             return
 
-        strategy = registry.get_by_id(s_id)
+        strategy = preprocessing_registry.get_by_id(s_id)
 
         self.current_p_method_id = s_id
 
@@ -247,14 +247,14 @@ class PreconditionParams(MDBoxLayout):
         self.current_p_method_id = self.default_p_method_id
         selector.default_element_id = self.default_p_method_id
 
-        selector.items_list = [label for _, label in registry.items()]
+        selector.items_list = [label for _, label in preprocessing_registry.items()]
 
         selector.bind(on_select=lambda _, s_id, prev_id: self.handle_p_method_select(s_id, prev_id))
 
         self.handle_p_method_select(self.default_p_method_id, -9)
 
     def get_params(self):
-        strategy = registry.get_by_id(self.current_p_method_id)
+        strategy = preprocessing_registry.get_by_id(self.current_p_method_id)
         key = strategy.key
 
         result = {"p_type": key}

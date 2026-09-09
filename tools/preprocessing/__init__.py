@@ -1,2 +1,2 @@
 from .preprocessing import PreprocessingRegistry
-from .preprocessing import registry
+from .preprocessing import preprocessing_registry

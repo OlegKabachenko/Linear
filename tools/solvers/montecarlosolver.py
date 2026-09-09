@@ -16,21 +16,21 @@ from tools.exceptions import MaxIterationsExceeded
 
 
 class MonteCarloSolver(Solver):
-    def choose_trj_lnght(self, B, b, eps):
+    def choose_trj_lnght(self, B, d, eps):
         q = np.linalg.norm(B, ord=np.inf)
-        b_norm = np.linalg.norm(b, ord=np.inf)
+        d_norm = np.linalg.norm(d, ord=np.inf)
 
-        if b_norm == 0 or q == 0:
+        if d_norm == 0 or q == 0:
             return 0
 
-        val = eps * (1-q)/b_norm
+        val = eps * (1-q)/d_norm
         k = int(np.ceil(np.log(val)/np.log(q) - 1))
         return k
 
-    def monte_worker(self, b, n, k, data, tridiagonal=False):
+    def monte_worker(self, d, n, k, data, tridiagonal=False):
         rng = Generator(Philox())
 
-        x_cnt = len(b)
+        x_cnt = len(d)
         results = [[] for _ in range(x_cnt)]
 
         if tridiagonal:
@@ -49,7 +49,7 @@ class MonteCarloSolver(Solver):
         for start_state in range(x_cnt):
             for _ in range(n):
                 curr_state = start_state
-                value = b[curr_state]
+                value = d[curr_state]
                 w = 1.0
 
                 for _ in range(k):
@@ -90,7 +90,7 @@ class MonteCarloSolver(Solver):
                     w *= transition_weight
                     curr_state = next_state
 
-                    value += w * b[curr_state]
+                    value += w * d[curr_state]
 
                 results[start_state].append(value)
 
@@ -129,7 +129,7 @@ class MonteCarloSolver(Solver):
             prob_upper
         )
 
-    def _prepare_monte_params(self, params, B, b):
+    def _prepare_monte_params(self, params, B, d):
         eps = params.get("eps", 0.1)
         alpha = params.get("alpha", 0.05)
         eps_k = eps * 0.4
@@ -144,7 +144,7 @@ class MonteCarloSolver(Solver):
         if start_n > max_n:
             raise MaxIterationsExceeded()
 
-        k = self.choose_trj_lnght(B, b, eps_k)
+        k = self.choose_trj_lnght(B, d, eps_k)
 
         return (
             alpha,
@@ -165,7 +165,7 @@ class MonteCarloSolver(Solver):
             prob = np.abs(B) / row_sums[:, None]
             return B, prob
 
-    def _execute_monte_parallel(self, n, b, k, data, tridiagonal):
+    def _execute_monte_parallel(self, n, d, k, data, tridiagonal):
         processes = ParallelExecutionPolicy.get_process_count(n)
 
         base_n = n // processes
@@ -180,7 +180,7 @@ class MonteCarloSolver(Solver):
             process_results = pool.starmap(
                 self.monte_worker,
                 [
-                    (b, n_local, k, data, tridiagonal)
+                    (d, n_local, k, data, tridiagonal)
                     for n_local in n_per_process
                     if n_local > 0
                 ]
@@ -221,7 +221,7 @@ class MonteCarloSolver(Solver):
         return resultinfo
 
     def solve(self, system: System, params: dict[str, Any]):
-        B, b = self._apply_preprocessing(system, params)
+        B, d = self._apply_preprocessing(system, params)
 
         (
             alpha,
@@ -231,9 +231,9 @@ class MonteCarloSolver(Solver):
             parallel,
             tridiagonal,
             k
-        ) = self._prepare_monte_params(params, B, b)
+        ) = self._prepare_monte_params(params, B, d)
 
-        x_cnt = len(b)
+        x_cnt = len(d)
 
         data = self._prepare_monte_data(tridiagonal, B)
 
@@ -247,13 +247,13 @@ class MonteCarloSolver(Solver):
             n_to_generate = n_total - current_n
 
             if not parallel:
-                new_results = self.monte_worker(b, n_to_generate, k, data, tridiagonal)
+                new_results = self.monte_worker(d, n_to_generate, k, data, tridiagonal)
 
                 for i in range(x_cnt):
                     results[i].extend(new_results[i])
 
             else:
-                process_results = self._execute_monte_parallel(n_to_generate, b, k, data, tridiagonal)
+                process_results = self._execute_monte_parallel(n_to_generate, d, k, data, tridiagonal)
 
                 for process_result in process_results:
                     for i in range(x_cnt):
