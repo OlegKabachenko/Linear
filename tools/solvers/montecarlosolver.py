@@ -13,38 +13,82 @@ from tools.system import System
 from tools.parallelexecutionpolicy import ParallelExecutionPolicy
 from tools.solverresultinfo import SolverResultInfo
 from tools.exceptions import MaxIterationsExceeded
+from tools.exceptions import NotTridiagonalError
 
 
 class MonteCarloSolver(Solver):
     def choose_trj_lnght(self, B, d, eps):
-        q = np.linalg.norm(B, ord=np.inf)
         d_norm = np.linalg.norm(d, ord=np.inf)
 
-        if d_norm == 0 or q == 0:
+        norm = np.linalg.norm(B, ord=np.inf)
+
+        if norm >= 1:
+            norm = np.linalg.norm(B, ord=1)
+            d_norm = np.linalg.norm(d, ord=1)
+
+        if d_norm == 0 or norm == 0:
             return 0
 
-        val = eps * (1-q)/d_norm
-        k = int(np.ceil(np.log(val)/np.log(q) - 1))
+        if norm >= 1:
+            return None
+
+        val = eps * (1-norm)/d_norm
+        k = int(np.ceil(np.log(val)/np.log(norm) - 1))
+
         return k
 
-    def monte_worker(self, d, n, k, data, tridiagonal=False):
+    def _get_next_state(self, curr_state, rng, B, prob):
+        next_state = rng.choice(len(B), p=prob[curr_state])
+
+        transition_value = B[curr_state, next_state]
+        transition_prob = prob[curr_state, next_state]
+
+        return next_state, transition_value, transition_prob
+
+    def _get_tridiagonal_next_state(self, curr_state, rng, lower, diag, upper, prob_lower, prob_diag, prob_upper):
+        probabilities = (
+            prob_lower[curr_state],
+            prob_diag[curr_state],
+            prob_upper[curr_state]
+        )
+
+        direction = rng.choice(3, p=probabilities)
+
+        if direction == 0:
+            next_state = curr_state - 1
+            transition_value = lower[curr_state]
+            transition_prob = prob_lower[curr_state]
+
+        elif direction == 1:
+            next_state = curr_state
+            transition_value = diag[curr_state]
+            transition_prob = prob_diag[curr_state]
+
+        else:
+            next_state = curr_state + 1
+            transition_value = upper[curr_state]
+            transition_prob = prob_upper[curr_state]
+
+        return next_state, transition_value, transition_prob
+
+    def monte_worker(self, d, n, k, data, tridiagonal=False, eps_k=None, max_steps=1000):
         rng = Generator(Philox())
 
         x_cnt = len(d)
         results = [[] for _ in range(x_cnt)]
 
         if tridiagonal:
-            (
-                lower,
-                diag,
-                upper,
-                prob_lower,
-                prob_diag,
-                prob_upper
-            ) = data
+            B, lower, diag, upper, prob_lower, prob_diag, prob_upper = data
 
         else:
             B, prob = data
+
+        #only for dynamic stopping
+        if k is None:
+            if self.get_spectral_radius(np.abs(B)) >= 1:
+                raise Exception()
+
+            h = np.linalg.inv(np.eye(x_cnt) - np.abs(B)) @ np.abs(d)
 
         for start_state in range(x_cnt):
             for _ in range(n):
@@ -52,38 +96,25 @@ class MonteCarloSolver(Solver):
                 value = d[curr_state]
                 w = 1.0
 
-                for _ in range(k):
+                step = 0
+                while True:
+                    # Fixed-length mode
+                    if k is not None and step >= k:
+                        break
+
+                    # Dynamic stopping mode
+                    if k is None:
+                        if abs(w)*h[curr_state] < eps_k:
+                            break
+
+                    # Safety limit
+                    if step >= max_steps:
+                        raise MaxIterationsExceeded()
+
                     if tridiagonal:
-                        probabilities = (
-                            prob_lower[curr_state],
-                            prob_diag[curr_state],
-                            prob_upper[curr_state]
-                        )
-
-                        direction = rng.choice(
-                            3,
-                            p=probabilities
-                        )
-
-                        if direction == 0:
-                            next_state = curr_state - 1
-                            transition_value = lower[curr_state]
-                            transition_prob = prob_lower[curr_state]
-
-                        elif direction == 1:
-                            next_state = curr_state
-                            transition_value = diag[curr_state]
-                            transition_prob = prob_diag[curr_state]
-
-                        else:
-                            next_state = curr_state + 1
-                            transition_value = upper[curr_state]
-                            transition_prob = prob_upper[curr_state]
-
+                        next_state, transition_value, transition_prob = self._get_tridiagonal_next_state(curr_state, rng, lower, diag, upper, prob_lower, prob_diag, prob_upper)
                     else:
-                        next_state = rng.choice(x_cnt, p=prob[curr_state])
-                        transition_value = B[curr_state, next_state]
-                        transition_prob = prob[curr_state, next_state]
+                        next_state, transition_value, transition_prob = self._get_next_state(curr_state, rng, B, prob)
 
                     transition_weight = (transition_value / transition_prob)
 
@@ -91,12 +122,23 @@ class MonteCarloSolver(Solver):
                     curr_state = next_state
 
                     value += w * d[curr_state]
+                    step += 1
 
                 results[start_state].append(value)
 
         return results
 
+    def _validate_tridiagonal(self, mtrx):
+        n = mtrx.shape[0]
+
+        for i in range(n):
+            for j in range(n):
+                if abs(i - j) > 1 and mtrx[i, j] != 0:
+                    raise NotTridiagonalError()
+
     def _build_tridiagonal_data(self, B):
+        self._validate_tridiagonal(B)
+
         n = B.shape[0]
 
         lower = np.zeros(n)
@@ -121,6 +163,7 @@ class MonteCarloSolver(Solver):
         prob_upper = np.abs(upper) / row_sums
 
         return (
+            B,
             lower,
             diag,
             upper,
@@ -153,7 +196,8 @@ class MonteCarloSolver(Solver):
             max_n,
             parallel,
             tridiagonal,
-            k
+            k,
+            eps_k
         )
 
     def _prepare_monte_data(self, tridiagonal, B):
@@ -165,7 +209,7 @@ class MonteCarloSolver(Solver):
             prob = np.abs(B) / row_sums[:, None]
             return B, prob
 
-    def _execute_monte_parallel(self, n, d, k, data, tridiagonal):
+    def _execute_monte_parallel(self, n, d, k, data, tridiagonal, eps_k):
         processes = ParallelExecutionPolicy.get_process_count(n)
 
         base_n = n // processes
@@ -180,7 +224,7 @@ class MonteCarloSolver(Solver):
             process_results = pool.starmap(
                 self.monte_worker,
                 [
-                    (d, n_local, k, data, tridiagonal)
+                    (d, n_local, k, data, tridiagonal, eps_k)
                     for n_local in n_per_process
                     if n_local > 0
                 ]
@@ -230,7 +274,8 @@ class MonteCarloSolver(Solver):
             max_n,
             parallel,
             tridiagonal,
-            k
+            k,
+            eps_k
         ) = self._prepare_monte_params(params, B, d)
 
         x_cnt = len(d)
@@ -245,15 +290,14 @@ class MonteCarloSolver(Solver):
         while True:
             # Number of new trajectories that must be generated
             n_to_generate = n_total - current_n
-
             if not parallel:
-                new_results = self.monte_worker(d, n_to_generate, k, data, tridiagonal)
+                new_results = self.monte_worker(d, n_to_generate, k, data, tridiagonal, eps_k)
 
                 for i in range(x_cnt):
                     results[i].extend(new_results[i])
 
             else:
-                process_results = self._execute_monte_parallel(n_to_generate, d, k, data, tridiagonal)
+                process_results = self._execute_monte_parallel(n_to_generate, d, k, data, tridiagonal, eps_k)
 
                 for process_result in process_results:
                     for i in range(x_cnt):
@@ -274,4 +318,6 @@ class MonteCarloSolver(Solver):
 
             n_total = n_new
 
+        if k is None:
+            k = "динамічна"
         return self._build_monte_result(x, n_total, B, k)

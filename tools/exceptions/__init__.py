@@ -1,4 +1,5 @@
 from .maxiterationsexceeded import MaxIterationsExceeded
 from .failedpreprocessingstrategy import FailedPreprocessingStrategy
 from .invaliditerationmatrixerror import InvalidIterationMatrixError
+from .nottridiagonalerror import NotTridiagonalError
 

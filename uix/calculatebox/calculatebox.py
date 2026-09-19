@@ -29,6 +29,7 @@ from uix.mixins import SizableFontMixin
 from tools.exceptions import MaxIterationsExceeded
 from tools.exceptions import FailedPreprocessingStrategy
 from tools.exceptions import InvalidIterationMatrixError
+from tools.exceptions import NotTridiagonalError
 from tools.system import System
 from tools.solverresultinfo import SolverResultInfo
 
@@ -165,6 +166,14 @@ class CalculateBox(MDBoxLayout):
             result = self.call_solver(system, solver, **extra_params)
             success = True
             self._on_solver_finished(system, result)         
+
+        except NotTridiagonalError:
+            Clock.schedule_once(
+                lambda dt: self.dispatch(
+                    "on_error",
+                    "Ітераційна матриця не є трьохдіагональною! Перевірьте початкову матрицю, або змініть налаштування передобробки!"
+                )
+            )
 
         except MaxIterationsExceeded:
             Clock.schedule_once(

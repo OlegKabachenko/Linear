@@ -193,8 +193,7 @@ class StandartParam(BaseParamLayout):
 
     def _set_default_value(self, dt):
         if self.min_value is not None:
-            self.ids.input.text = str(self.min_value)
-
+            self.ids.input.text = format(self.min_value, "f").rstrip("0").rstrip(".")
 
     def is_error(self):
         return self.ids.input.error
