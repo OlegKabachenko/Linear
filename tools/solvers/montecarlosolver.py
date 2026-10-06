@@ -17,9 +17,44 @@ from tools.exceptions import NotTridiagonalError
 
 
 class MonteCarloSolver(Solver):
+    def _find_alpha(self, B, d, I, step=0.1, max_val=1.5, min_val=-1.5):
+        tol = 1e-2
+        for alpha in np.arange(max_val, min_val - step, -step):
+            b_mod = (1 - alpha) * I + alpha * B
+            b_mod_norms = self.get_norms(b_mod)
+            b_mod_abs_rad = self.get_spectral_radius(np.abs(b_mod))
+
+            if min(b_mod_norms) < 1 - tol or b_mod_abs_rad < 1 - tol:
+                d_mod = alpha * d
+                return b_mod, d_mod
+
+        return None
+
+    def _prepare_for_chain_length(self, B, d):
+        I = np.eye(len(d))
+
+        result = self._find_alpha(B, d, I)
+        if result is not None:
+            return result
+
+        b_new = I - np.transpose(I - B) @ (I - B)
+        d_new = np.transpose(I - B) @ d
+
+        norms = self.get_norms(b_new)
+        s_rad = self.get_spectral_radius(b_new)
+        s_rad_abs = self.get_spectral_radius(np.abs(b_new))
+
+        if min(norms) < 1 or (s_rad < 1 and s_rad_abs<1):
+            return b_new, d_new
+
+        result = self._find_alpha(b_new, d_new, I)
+        if result is not None:
+            return result
+        else:
+            raise ValueError("k error")
+
     def choose_trj_lnght(self, B, d, eps):
         d_norm = np.linalg.norm(d, ord=np.inf)
-
         norm = np.linalg.norm(B, ord=np.inf)
 
         if norm >= 1:
@@ -27,15 +62,21 @@ class MonteCarloSolver(Solver):
             d_norm = np.linalg.norm(d, ord=1)
 
         if d_norm == 0 or norm == 0:
-            return 0
+            return 0, B, d
 
         if norm >= 1:
-            return None
+            ro_module_b = self.get_spectral_radius(np.abs(B))
 
-        val = eps * (1-norm)/d_norm
-        k = int(np.ceil(np.log(val)/np.log(norm) - 1))
+            if ro_module_b >= 1:
+                B_new, d_new = self._prepare_for_chain_length(B, d)
+                return self.choose_trj_lnght(B_new, d_new, eps)
+            else:
+                return None, B, d
 
-        return k
+        val = eps * (1 - norm) / d_norm
+        k = int(np.ceil(np.log(val) / np.log(norm) - 1))
+
+        return k, B, d
 
     def _get_next_state(self, curr_state, rng, B, prob):
         next_state = rng.choice(len(B), p=prob[curr_state])
@@ -71,9 +112,8 @@ class MonteCarloSolver(Solver):
 
         return next_state, transition_value, transition_prob
 
-    def monte_worker(self, d, n, k, data, tridiagonal=False, eps_k=None, max_steps=1000):
+    def monte_worker(self, d, n, k, data, tridiagonal=False, eps_k=None, max_steps=900):
         rng = Generator(Philox())
-
         x_cnt = len(d)
         results = [[] for _ in range(x_cnt)]
 
@@ -91,7 +131,7 @@ class MonteCarloSolver(Solver):
             h = np.linalg.inv(np.eye(x_cnt) - np.abs(B)) @ np.abs(d)
 
         for start_state in range(x_cnt):
-            for _ in range(n):
+            for i in range(n):
                 curr_state = start_state
                 value = d[curr_state]
                 w = 1.0
@@ -125,7 +165,6 @@ class MonteCarloSolver(Solver):
                     step += 1
 
                 results[start_state].append(value)
-
         return results
 
     def _validate_tridiagonal(self, mtrx):
@@ -175,8 +214,8 @@ class MonteCarloSolver(Solver):
     def _prepare_monte_params(self, params, B, d):
         eps = params.get("eps", 0.1)
         alpha = params.get("alpha", 0.05)
-        eps_k = eps * 0.4
-        eps_mc = eps * 0.6
+        eps_k = eps * 0.2
+        eps_mc = eps * 0.8
 
         start_n = params.get("start_monte_n", 20)
         max_n = params.get("max_monte_n", 1000000)
@@ -187,7 +226,7 @@ class MonteCarloSolver(Solver):
         if start_n > max_n:
             raise MaxIterationsExceeded()
 
-        k = self.choose_trj_lnght(B, d, eps_k)
+        k, B, d = self.choose_trj_lnght(B, d, eps_k)
 
         return (
             alpha,
@@ -197,7 +236,9 @@ class MonteCarloSolver(Solver):
             parallel,
             tridiagonal,
             k,
-            eps_k
+            eps_k,
+            B,
+            d
         )
 
     def _prepare_monte_data(self, tridiagonal, B):
@@ -275,7 +316,9 @@ class MonteCarloSolver(Solver):
             parallel,
             tridiagonal,
             k,
-            eps_k
+            eps_k,
+            B,
+            d
         ) = self._prepare_monte_params(params, B, d)
 
         x_cnt = len(d)
@@ -288,8 +331,8 @@ class MonteCarloSolver(Solver):
         n_total = start_n
 
         while True:
-            # Number of new trajectories that must be generated
             n_to_generate = n_total - current_n
+
             if not parallel:
                 new_results = self.monte_worker(d, n_to_generate, k, data, tridiagonal, eps_k)
 
@@ -320,4 +363,5 @@ class MonteCarloSolver(Solver):
 
         if k is None:
             k = "динамічна"
+
         return self._build_monte_result(x, n_total, B, k)

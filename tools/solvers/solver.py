@@ -23,8 +23,8 @@ class Solver(ABC):
         return strategy.process(a, b, params)
 
     def get_norms(self, mtrx):
-        m = np.max(np.sum(np.abs(mtrx), axis=1))
-        n = np.max(np.sum(np.abs(mtrx), axis=0))
+        m = np.linalg.norm(mtrx, ord=np.inf)
+        n = np.linalg.norm(mtrx, ord=1)
 
         return m, n
 

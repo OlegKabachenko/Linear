@@ -9,13 +9,15 @@ from tools.system import System
 from tools.solverresultinfo import SolverResultInfo
 
 
-class ExactSolver(Solver):
+class InvMatrixSolver(Solver):
     def solve(self, system: System, params: dict[str, Any]) -> SolverResultInfo:
 
         a = system.get_x()
         b = system.get_y()
 
-        x = np.linalg.solve(a, b)
+        a_inv = np.linalg.inv(a)
+
+        x = a_inv @ b
 
         resultinfo = SolverResultInfo()
         resultinfo.add_solution(x)

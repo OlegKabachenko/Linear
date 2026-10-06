@@ -3,7 +3,7 @@ __all__ = "METHODS"
 from typing import TypedDict
 
 from .solver import Solver
-from .exactsolver import ExactSolver
+from .invmatrixsolver import InvMatrixSolver
 from .jacobisolver import JacobiSolver
 from .seidelsolver import SeidelSolver
 from .montecarlosolver import MonteCarloSolver
@@ -16,8 +16,8 @@ class MethodInfo(TypedDict):
 
 
 METHODS: dict[str, MethodInfo] = {
-    "Точний метод": {
-        "solver": ExactSolver,
+    "Матричний метод": {
+        "solver": InvMatrixSolver,
         "extra_widget": None,
         "can_be_parallel": False,
     },
