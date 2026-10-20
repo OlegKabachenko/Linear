@@ -53,6 +53,9 @@ class MonteCarloSolver(Solver):
         else:
             raise ValueError("k error")
 
+
+
+
     def choose_trj_lnght(self, B, d, eps):
         d_norm = np.linalg.norm(d, ord=np.inf)
         norm = np.linalg.norm(B, ord=np.inf)
@@ -61,8 +64,11 @@ class MonteCarloSolver(Solver):
             norm = np.linalg.norm(B, ord=1)
             d_norm = np.linalg.norm(d, ord=1)
 
-        if d_norm == 0 or norm == 0:
+        if d_norm == 0:
             return 0, B, d
+
+        if norm == 0:
+            return 1, B, d
 
         if norm >= 1:
             ro_module_b = self.get_spectral_radius(np.abs(B))
@@ -74,7 +80,7 @@ class MonteCarloSolver(Solver):
                 return None, B, d
 
         val = eps * (1 - norm) / d_norm
-        k = int(np.ceil(np.log(val) / np.log(norm) - 1))
+        k = max(1, int(np.ceil(np.log(val) / np.log(norm))))
 
         return k, B, d
 
@@ -133,13 +139,13 @@ class MonteCarloSolver(Solver):
         for start_state in range(x_cnt):
             for i in range(n):
                 curr_state = start_state
-                value = d[curr_state]
+                value = d[curr_state] if k is None or k > 0 else 0.0
                 w = 1.0
-
                 step = 0
+
                 while True:
                     # Fixed-length mode
-                    if k is not None and step >= k:
+                    if k is not None and step >= k-1:
                         break
 
                     # Dynamic stopping mode

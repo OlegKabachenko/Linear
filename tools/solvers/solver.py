@@ -1,4 +1,3 @@
-
 __all__ = ["Solver", "MaxIterationsExceeded"]
 
 import numpy as np

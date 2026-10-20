@@ -1,4 +1,4 @@
-__all__ = "ExactSolver"
+__all__ = "InvMatrixSolver"
 
 import numpy as np
 
