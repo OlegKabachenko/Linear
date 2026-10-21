@@ -220,8 +220,6 @@ class FloatParam(StandartParam):
 
 
 class PreconditionParams(MDBoxLayout):
-    min_scale = NumericProperty(None)
-    max_scale = NumericProperty(None)
     current_p_method_id = NumericProperty(None)
     default_p_method_id = config['DEFAULT_P_MTD_ID']
 
@@ -235,10 +233,6 @@ class PreconditionParams(MDBoxLayout):
         strategy = preprocessing_registry.get_by_id(s_id)
 
         self.current_p_method_id = s_id
-
-        scale_param = self.ids.scale
-
-        scale_param.opacity = 1 if strategy.key == "prec" else 0
 
     def _init_selector(self):
         selector = self.ids.precondition_mtd
@@ -257,9 +251,6 @@ class PreconditionParams(MDBoxLayout):
         key = strategy.key
 
         result = {"p_type": key}
-
-        if key == "prec":
-            result["scale"] = self.ids.scale.get_params()
 
         return result
 

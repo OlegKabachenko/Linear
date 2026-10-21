@@ -87,34 +87,21 @@ class Preconditioning(PreprocessingStrategy):
     key = "prec"
     label = "Попереднє кондиціонування"
 
-    def custom_round(self, a):
-        sign = np.sign(a)
-
-        abs_a = np.abs(a)
-        a_round_abs = np.where(abs_a % 1 >= 0.7, np.ceil(abs_a), np.floor(abs_a))
-
-        return a_round_abs * sign
-
-    def scale_matrix(self, a, scale=10):
-        a_scaled = a * scale
-        return self.custom_round(a_scaled)
-
     def process(self, a, b, params):
-        scale = params["scale"]
-        a_inv = np.linalg.inv(a)
-        c = self.scale_matrix(a_inv, scale)
 
-        an = c @ a
-        bn = c @ b
+        if not (self.is_diagonally_dominant(a)):
+            a, b = self.to_dominant(a, b)
 
-        if not (self.is_diagonally_dominant(an)):
-            an, bn = self.to_dominant(an, bn)
+        if not self.is_diagonally_dominant(a) or np.any(np.diag(a) == 0):
+            raise FailedPreprocessingStrategy()
 
-        B, d = self.to_canonical_iterative_form(an, bn)
+        diagonal = np.diag(a)
+        c = 1 / diagonal
 
-        self.validate_iteration_matrix(B)
+        a = c[:, None] * a
+        b = c * b
 
-        return B, d
+        return self.to_canonical_iterative_form(a, b)
 
 
 class Spectral(PreprocessingStrategy):

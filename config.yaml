@@ -64,8 +64,6 @@ EXAMPLES:
 #------for system limitations
 MIN_N: 2
 MAX_N: 25
-MIN_SCALE: 2
-MAX_SCALE: 110
 MIN_MAX_ITR: 2
 MAX_MAX_ITR: 500
 MIN_EPS: 0.00000001

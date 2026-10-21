@@ -60,8 +60,6 @@ class MainScreen(MDScreen):
 
         self.min_n = self.app_config["MIN_N"]
         self.max_n = self.app_config["MAX_N"]
-        self.min_scale = self.app_config["MIN_SCALE"]
-        self.max_scale = self.app_config["MAX_SCALE"]
         self.min_max_itr = self.app_config["MIN_MAX_ITR"]
         self.max_max_itr = self.app_config["MAX_MAX_ITR"]
         self.min_eps = self.app_config["MIN_EPS"]
@@ -100,8 +98,6 @@ class MainScreen(MDScreen):
     def _init_widgets(self):
         self.error_dialog = ErrorDialog()
         self.classic_methods_param = ClassicMethodsParam(
-            min_scale=self.min_scale,
-            max_scale=self.max_scale,
             min_itr=self.min_max_itr,
             max_itr=self.max_max_itr,
             min_eps=self.min_eps,

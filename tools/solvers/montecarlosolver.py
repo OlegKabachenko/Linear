@@ -150,7 +150,7 @@ class MonteCarloSolver(Solver):
 
                     # Dynamic stopping mode
                     if k is None:
-                        if abs(w)*h[curr_state] < eps_k:
+                        if abs(w) * (h[curr_state] - abs(d[curr_state])) < eps_k:
                             break
 
                     # Safety limit
