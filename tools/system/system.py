@@ -1,5 +1,6 @@
 import numpy as np
 
+
 class System:
     def __init__(self, n, x, y):
         self.__n = None

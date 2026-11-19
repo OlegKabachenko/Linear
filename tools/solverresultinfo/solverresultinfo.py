@@ -71,9 +71,9 @@ class SolverResultInfo(dict):
         self.add(
             "deltas",
             value,
-            "Похибки отриманих розв'язків",
+            "Нев’язки рівнянь",
             bold=True,
-            item_label="Δ",
+            item_label="r",
             order=5
         )
 

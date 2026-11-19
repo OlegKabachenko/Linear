@@ -20,7 +20,7 @@ class PreprocessingStrategy(ABC):
         for i in range(n):
             diag = abs(mtrx[i][i])
             off_diag_sum = np.sum(np.abs(mtrx[i])) - diag
-            if diag < off_diag_sum:
+            if diag <= off_diag_sum:
                 return False
         return True
 

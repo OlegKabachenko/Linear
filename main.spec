@@ -15,6 +15,7 @@ a = Analysis(
         ('uix/parameterbox/parameterbox.kv', 'uix/parameterbox'),
         ('uix/params/params.kv', 'uix/params'),
         ('uix/sizablebtn/sizablebtn.kv', 'uix/sizablebtn'),
+        ('uix/sizablefontlabel/sizablefontlabel.kv', 'uix/sizablefontlabel'),
         ('uix/standartboxlayout/standartboxlayout.kv', 'uix/standartboxlayout'),
         ('uix/systembox/systembox.kv', 'uix/systembox'),
         ('uix/systemdatabox/systemdatabox.kv', 'uix/systemdatabox'),

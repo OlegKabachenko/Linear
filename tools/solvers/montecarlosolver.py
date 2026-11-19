@@ -20,13 +20,17 @@ class MonteCarloSolver(Solver):
     def _find_alpha(self, B, d, I, step=0.1, max_val=1.5, min_val=-1.5):
         tol = 1e-2
         for alpha in np.arange(max_val, min_val - step, -step):
+            if alpha == 0:
+                continue
+
             b_mod = (1 - alpha) * I + alpha * B
             b_mod_norms = self.get_norms(b_mod)
             b_mod_abs_rad = self.get_spectral_radius(np.abs(b_mod))
 
             if min(b_mod_norms) < 1 - tol or b_mod_abs_rad < 1 - tol:
-                d_mod = alpha * d
-                return b_mod, d_mod
+                if self.get_spectral_radius(b_mod) < 1 - tol:
+                    d_mod = alpha * d
+                    return b_mod, d_mod
 
         return None
 
@@ -52,9 +56,6 @@ class MonteCarloSolver(Solver):
             return result
         else:
             raise ValueError("k error")
-
-
-
 
     def choose_trj_lnght(self, B, d, eps):
         d_norm = np.linalg.norm(d, ord=np.inf)
@@ -335,7 +336,6 @@ class MonteCarloSolver(Solver):
 
         current_n = 0
         n_total = start_n
-
         while True:
             n_to_generate = n_total - current_n
 
